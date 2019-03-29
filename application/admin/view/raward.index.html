@@ -1,0 +1,71 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"article","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="130" class="txt-center"><span class="order" data-params='{"field":"id","sort":"asc"}'> 连续签到天数</span></th>
+                            <th>奖励金额</th>
+                            <th>添加时间</th>
+                            <th width="80">状态</th>
+                            <th width="90">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<div class="add-subcat">
+    <form id="form1" class="layui-form" data-params='{"dataName":"article","key":"id","bind":true,"pid":"pid"}'  method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">签到天数</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" disabled readonly class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖励金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="raward_money" required jq-verify="required" jq-error="请输入金额" placeholder="请输入金额" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","pageid":"#page","dataName":"article"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td class="txt-center">{{ item.id}}</td>
+        <td>{{ item.raward_money}}</td>
+        <td>{{ item.add_time}}</td>
+        <td><input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用" value="1" {{#if (item.status){ }}checked="checked" {{# } }} lay-filter="ajax" data-params='{"url":"{:url("$classuri/setstatus")}","method":"post","data":"id={{ item.id}}&field=status"}'> </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"400px,250px","title":"编辑","data":"id={{ item.id }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>
+                    <i class="iconfont">&#xe653;</i>编辑
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>
