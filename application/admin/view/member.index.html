@@ -35,6 +35,7 @@
                             <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
 
                             <th>用户账号</th>
+                            <th>真实名字</th>
                             <th>手机号</th>
                             <th>性别</th>
                             <th>抖金余额</th>
@@ -60,6 +61,7 @@
         <td><input type="checkbox" name="id" value="{{ item.id}}" lay-skin="primary"></td>
         <td>{{ item.user_id}}</td>
         <td>{{ item.user_name}}</td>
+        <td>{{ item.true_name}}</td>
         <td>{{ item.user_phone }}</td>
         <td>
             {{# if (item.sex==1){ }}
