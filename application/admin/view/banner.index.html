@@ -41,6 +41,9 @@
             <!--列表-->
             <section class="panel panel-padding">
                 <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger ajax-all" data-params='{"url": "{:url("$classuri/del")}","data":"field=delete","method":"post","confirm":"true","dataName":"member","key":"banner_id","action":"del"}'>
+                        <i class="iconfont">&#xe626;</i> 删除
+                    </button>
                     <button class="layui-btn layui-btn-small modal" data-params='{"content": "add.html","url":"{:url("$classuri/add")}","type":"2", "title": "新增","key":"banner_id"}'>
                         <i class="iconfont">&#xe649;</i> 添加
                     </button>
@@ -49,6 +52,7 @@
                     <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"banner_id"}'>
                         <thead>
                         <tr>
+                            <th width="30"><input type="checkbox" id="checkall" data-name="banner_id" lay-filter="check" lay-skin="primary"></th>
                             <th width="80"><span class="order" data-params='{"field":"banner_id","sort":"asc"}'>序号</span></th>
                             <th>图片</th>
                             <th>描述</th>
@@ -56,7 +60,7 @@
                             <th>类型</th>
                             <th>状态</th>
                             <th>添加时间</th>
-                            <th width="180">操作</th>
+                            <th width="200">操作</th>
                         </tr>
                         </thead>
                         <tbody id="list"></tbody>
@@ -72,6 +76,7 @@
 <script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
     {{# layui.each(d.list, function(index, item){ }}
     <tr>
+        <td><input type="checkbox" name="banner_id" value="{{ item.banner_id}}" lay-skin="primary"></td>
         <td>{{ item.banner_id}}</td>
         <td>
             {{# if (item.img_url) { }}
@@ -109,6 +114,9 @@
                     <i class="iconfont">&#xe626;</i>不展示
                 </button>
                 {{# } }}
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"banner_id={{ item.banner_id }}&field=delete","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>删除
+                </button>
             </div>
         </td>
     </tr>

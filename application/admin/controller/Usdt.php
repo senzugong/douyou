@@ -60,6 +60,7 @@ class Usdt extends BasicAdmin
      */
     public function del()
     {
+        $this->request->post(['id'=> $this->request->post('log_id')]);
         if (DataService::update($this->table)) {
             LogService::write('系统管理', '删除用户影响力交易记录成功');
             $this->success("交易记录删除成功！", '');

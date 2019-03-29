@@ -73,6 +73,16 @@ class Banner extends BasicAdmin
             @unlink(realpath(ROOT_PATH . $this->img_url));
         }
     }
+    public function del()
+    {
+        $this->request->post(['id'=> $this->request->post('banner_id')]);
+        if (DataService::update($this->table)) {
+            LogService::write('系统管理', '删除横幅展示成功');
+            $this->success("删除横幅展示成功！", '');
+        }
+        LogService::write('系统管理', '删除横幅展示失败');
+        $this->error("删除横幅展示失败，请稍候再试！");
+    }
 
     /**
      * 设置状态
