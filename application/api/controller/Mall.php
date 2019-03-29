@@ -12,6 +12,8 @@ use app\common\model\UsdtLog;
 use app\common\model\UsdtMall;
 use app\common\model\User;
 use app\common\model\UsdtOrder;
+use app\common\model\UserBank;
+use app\common\model\UserGathering;
 use controller\BasicApi;
 use think\Config;
 use think\Db;
@@ -614,6 +616,20 @@ class Mall extends BasicApi
             Db::rollback();
             return $this->response('取消失败!',304);
         }
+    }
+
+    /**默认支付方式
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function default_payment(Request $request){
+        $userInfo = $request->userInfo;
+        $list['bank'] = UserBank::where(['user_id'=>$userInfo['user_id'],'status'=>1])->find();
+        $list['wx_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>2,'status'=>1])->find();
+        $list['zfb_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>3,'status'=>1])->find();
+        return $this->response($list);
     }
 
 }

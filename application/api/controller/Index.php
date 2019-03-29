@@ -9,6 +9,7 @@
 namespace app\api\controller;
 
 use app\api\validate\IndexValidate;
+use app\common\model\Banner;
 use app\common\model\Btc;
 use app\common\model\BtcPost;
 use app\common\model\GameResult;
@@ -17,6 +18,7 @@ use app\common\model\RawardSet;
 use app\common\model\TurntableLog;
 use app\common\model\UserWeek;
 use controller\BasicApi;
+use think\Config;
 use think\Db;
 use think\Request;
 
@@ -151,8 +153,8 @@ class Index extends BasicApi
                $list['rise'] = 100;
                $list['fall'] = 0;
            }
-           $list['rise'] = bcdiv($rise_num,$count,2)*100;
-           $list['fall'] = bcsub(1,$list['rise'],2)*100;
+           $list['rise'] = bcmul(bcdiv($rise_num,$count,2),100,2);
+           $list['fall'] = bcsub(100,$list['rise'],2);
        }
 
        //时时彩开奖结果
@@ -174,5 +176,19 @@ class Index extends BasicApi
        }
         return $this->response($list);
 
+    }
+
+    /**首页banner
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function index_banner(Request $request){
+        $banner_list = Banner::where(['status'=>0])->select();
+        foreach($banner_list as &$v){
+            $v['img_url'] = $v['img_url'] ? Config::get('image_url').$v['img_url'] : '';
+        }
+        return $this->response($banner_list);
     }
 }
