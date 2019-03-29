@@ -62,10 +62,10 @@ class Usdt extends BasicAdmin
     {
         $this->request->post(['id'=> $this->request->post('log_id')]);
         if (DataService::update($this->table)) {
-            LogService::write('系统管理', '删除用户影响力交易记录成功');
+            LogService::write('系统管理', '删除用户USDT交易记录成功');
             $this->success("交易记录删除成功！", '');
         }
-        LogService::write('系统管理', '删除用户影响力交易记录失败');
+        LogService::write('系统管理', '删除用户USDT交易记录失败');
         $this->error("交易记录删除失败，请稍候再试！");
     }
 }
