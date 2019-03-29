@@ -62,7 +62,16 @@ class Banner extends BasicAdmin
      * @return array|string
      */
     public function edit() {
+        if ($this->request->isPost() && $this->request->post('banner_id')) {
+            $this->BannerModel = BannerModel::get($this->request->post('banner_id'));
+            $this->img_url = $this->BannerModel->img_url;
+        }
         return $this->_form($this->table,'form', '编辑成功','banner/index','banner_id');
+    }
+    protected function _form_result($result) {
+        if ($this->request->action() == 'edit' && $this->request->isPost() && $result !== false &&$this->img_url != $this->request->post('img_url')) {
+            @unlink(realpath(ROOT_PATH . $this->img_url));
+        }
     }
 
     /**
