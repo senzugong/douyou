@@ -34,7 +34,7 @@ class DjTrade extends BasicAdmin
         $db = ChangeLog::alias('a')
             ->join('dw_users b', 'b.user_id=a.user_id')
             ->field('a.*,b.user_name,b.true_name')
-            ->order('status asc');
+            ->order('status asc, a.log_id asc');
         // 应用搜索条件
         foreach (['user_id', 'type', 'wallet_address', 'coin_address'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
@@ -44,7 +44,13 @@ class DjTrade extends BasicAdmin
         // 实例化并显示
         return parent::_list($db);
     }
-
+    public function _data_filter(&$data) {
+        if ($this->request->action() == 'index') {
+            foreach ($data as &$v) {
+                $v['add_time'] = date('Y-m-d H:i:s', $v['add_time']);
+            }
+        }
+    }
     /**
      * 充值提现审核
      * @throws \think\exception\DbException

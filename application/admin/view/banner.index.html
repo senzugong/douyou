@@ -1,0 +1,120 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form"  data-params='{"dataName":"member","key":"banner_id","action":"list"}' method="get" action="{:url("$classuri/index")}">
+                <div class="layui-form">
+
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input class="layui-input" name="title" placeholder="描述">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <select name="type">
+                                <option value=""></option>
+                                <option value="1">内部</option>
+                                <option value="2">外部</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <select name="status">
+                                <option value=""></option>
+                                <option value="0">展示</option>
+                                <option value="1">不展示</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                    </div>
+                </div>
+                </form>
+            </section>
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small modal" data-params='{"content": "add.html","url":"{:url("$classuri/add")}","type":"2", "title": "新增","key":"banner_id"}'>
+                        <i class="iconfont">&#xe649;</i> 添加
+                    </button>
+                </div>
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"banner_id"}'>
+                        <thead>
+                        <tr>
+                            <th width="80"><span class="order" data-params='{"field":"banner_id","sort":"asc"}'>序号</span></th>
+                            <th>图片</th>
+                            <th>描述</th>
+                            <th>链接</th>
+                            <th>类型</th>
+                            <th>状态</th>
+                            <th>添加时间</th>
+                            <th width="180">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>{{ item.banner_id}}</td>
+        <td>
+            {{# if (item.img_url) { }}
+                <div style="display: inline-block;"><img src="{{ item.img_url}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            {{# } }}
+        </td>
+        <td>{{ item.title }}</td>
+        <td>{{ item.link_url }}</td>
+        <td>
+            {{# if (item.type == 1) { }}
+            内部
+            {{# } else if (item.type == 2) { }}
+            外部
+            {{# } }}
+        </td>
+        <td>
+            {{# if (item.status == 0) { }}
+            展示
+            {{# } else if (item.status == 1) { }}
+            不展示
+            {{# } }}
+        </td>
+        <td>{{ item.add_time }}</td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": "edit.html","url":"{:url("$classuri/edit")}","type":"2", "title": "{{item.title}}","key":"banner_id","data":"banner_id={{item.banner_id}}"}'>
+                    <i class="iconfont">&#xe653;</i>编辑
+                </button>
+                {{#if (item.status == 1){ }}
+                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.banner_id }}&banner_id={{ item.banner_id }}&status=0&field=status","method":"post","confirm":"true"}'>
+                    <i class="layui-icon">&#x1005;</i>展示
+                </button>
+                {{# }else{ }}
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.banner_id }}&banner_id={{ item.banner_id }}&status=1&field=status","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>不展示
+                </button>
+                {{# } }}
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>

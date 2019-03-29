@@ -1,0 +1,66 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <section class="panel panel-padding">
+                <form id="form1" class="layui-form " data-params='{"dataName":"member","key":"banner_id","bind":true,"action":"add"}' action="__SELF__" method="post">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">描述</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" value="{$vo.title|default=''}" jq-error="请输入描述" placeholder="请输入描述" autocomplete="off" class="layui-input ">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图片</label>
+                        <div class="layui-input-block">
+                            <input type="file" name="file" class="layui-upload-file">
+                            <input type="hidden" name="img_url" class="img" jq-verify="required"   jq-error="请上传图片" error-id="img-error">
+                            <p id="img-error" class="error"></p>
+                        </div>
+
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">类型</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="type" value="1" title="内部" {if !isset($vo['banner_id'])}checked{/if}>
+                            <input type="radio" name="type" value="2" title="外部">
+                        </div>
+                    </div>
+                    <div class="layui-form-item ">
+                        <label class="layui-form-label">外部地址</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="link_url" value="{$vo.link_url|default=''}" autocomplete="off" class="layui-input ">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="status" value="0" title="展示" {if !isset($vo['banner_id'])}checked{/if}>
+                            <input type="radio" name="status" value="1" title="不展示">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            {if isset($vo['banner_id'])}<input type='hidden' value='{$vo.banner_id}' name='banner_id'/>{/if}
+                            <button class="layui-btn" jq-submit lay-filter="submit">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary" onclick="closeWindow();">返回</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+{include file="public/bottom"}
+<script>
+    var $, JQquery;
+    layui.use('myform');
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    function closeWindow() {
+        if(index){
+            parent.layer.close(index);
+        }
+    }
+</script>
+
