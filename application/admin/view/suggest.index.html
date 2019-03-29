@@ -1,0 +1,127 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="add-subcat">
+    <form id="form1" class="layui-form"   data-params='{"dataName":"suggest","key":"id","bind":true,"action":"edit"}' method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否已审核</label>
+            <div class="layui-input-inline">
+                <input type="radio" name="status" title="是" value="1"/>
+                <input type="radio" name="status" title="否" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">反馈内容</label>
+            <div class="layui-input-block">
+                <textarea name="status_msg" placeholder="请输入反馈内容" class="layui-textarea">{$vo.status_msg|default=""}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form"  data-params='{"dataName":"suggest","key":"id","action":"list"}' method="get" action="{:url("$classuri/index")}">
+                <div class="layui-form">
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input class="layui-input" name="user_name" placeholder="用户名">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input class="layui-input" name="user_phone" placeholder="手机号">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                    </div>
+                </div>
+                </form>
+            </section>
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger ajax-all" data-params='{"url": "{:url("$classuri/del_position")}","data":"field=delete","method":"post","confirm":"true","dataName":"suggest","key":"id","action":"del"}'>
+                        <i class="iconfont">&#xe626;</i> 删除
+                    </button>
+                </div>
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"suggest","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="30"><input type="checkbox" id="checkall" data-name="id" lay-filter="check" lay-skin="primary"></th>
+                            <th width="70"><span class="order" data-params='{"field":"id","sort":"asc"}'> id</span></th>
+                            <th>用户名</th>
+                            <th>反馈内容</th>
+                            <th>图片</th>
+                            <th>联系方式</th>
+                            <th>反馈时间</th>
+                            <th width="90">审核状态</th>
+                            <th width="140">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"suggest"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td><input type="checkbox" name="id" value="{{ item.id}}" lay-skin="primary"></td>
+        <td>{{ item.id}}</td>
+        <td>{{ item.user_name}}</td>
+        <td>{{ item.proposal_content}}</td>
+        <td>
+            {{# if (item.img1){ }}
+            <div style="display: inline-block;"><img src="/{{ item.img1}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            {{# } }}
+            {{# if (item.img2){ }}
+            <div style="display: inline-block;"><img src="/{{ item.img2}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            {{# } }}
+            {{# if (item.img3){ }}
+            <div style="display: inline-block;"><img src="/{{ item.img3}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            {{# } }}
+        </td>
+        <td>{{ item.user_phone}}</td>
+        <td>{{ item.add_time }}</td>
+        <td>
+            {{# if (item.status==1){ }}
+            已回复
+            {{# }else { }}
+            未回复
+            {{# } }}
+        </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"url":"{:url("$classuri/edit")}","content": ".add-subcat","area":"800px,310px","title":"回复","type":"1","data":"id={{ item.id }}","form":"#form1","bind":"true","action":"edit"}'>
+                    <i class="iconfont">&#xe653;</i>回复
+                </button>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"id={{ item.id }}&field=delete","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>删除
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    if(index){
+        parent.layer.close(index);
+    }
+</script>

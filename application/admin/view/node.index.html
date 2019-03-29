@@ -1,0 +1,111 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <section class="panel panel-padding">
+                <table class="layui-table" lay-skin="line">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>系统节点结构<span style="color: #ff101a">(系统自动生成)</span></th>
+                        <th></th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {foreach $nodes as $key=>$vo}
+                <tr>
+                    <td></td>
+                    <td>
+                        {$vo.spl}{$vo.node}
+                        &nbsp;<input class='layui-input layui-input-inline title-input' style='height:28px;line-height:28px;width:auto' name='title.{$vo.node}' value="{$vo.title}"/>
+                    </td>
+                    <td>
+
+                        <label>
+                            {if substr_count($vo['node'],'/')== 2}
+                            {notempty name='vo.is_auth'}
+                            <input name='is_auth.{$vo.node}' class="check-box" checked='checked'  type='checkbox' value='1'/>
+                            {else/}
+                            <input name='is_auth.{$vo.node}' class="check-box" type='checkbox'   value='1'/>
+                            {/notempty}
+                            加入权限控制
+                            {/if}
+                        </label>
+
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <label>
+                            {if substr_count($vo['node'],'/')==2}
+                            {notempty name='vo.is_menu'}
+                            <input name='is_menu.{$vo.node}' class="check-box" checked='checked'  type='checkbox' value='1'/>
+                            {else}
+                            <input name='is_menu.{$vo.node}' class="check-box" type='checkbox' value='1'/>
+                            {/notempty}
+                            可设为菜单
+                            {/if}
+                        </label>
+                    </td>
+                    <td></td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+                </section>
+            </div>
+        </div>
+    </div>
+{include file="public/bottom"}
+<script type="text/javascript" src="/static/plugs/jquery/jquery.min.js"></script>
+<script>
+    layui.use(['layer','form','jquery'],function () {
+        var $ = layui.jquery;
+        $(function () {
+            $('input.title-input').on('blur', function () {
+                $.ajax({
+                    url: '{:url("save")}',
+                    dataType: "json",
+                    data:{name: this.name, value: this.value},
+                    type: "POST",
+                    success: function(data){
+                        if(data.status == 200){
+                            var index = layer.load(2, {time: 1000});
+                            layer.close(index);
+                        }else{
+                            layer.msg(data.msg);
+                        }
+                    },
+                    error:function(data)
+                    {
+                        if(data.responseText!='')
+                            alert(data.responseText);
+                    }
+                });
+            });
+            $('input.check-box').on('click', function () {
+
+                $.ajax({
+                    url: '{:url("save")}',
+                    dataType: "json",
+                    data:{name: this.name, value: this.checked ? 1 : 0},
+                    type: "POST",
+                    success: function(data){
+                        if(data.status == 200){
+                            var index = layer.load(2, {time: 1000});
+                            layer.close(index);
+                        }else{
+                            layer.msg(data.msg);
+                        }
+                    },
+                    error:function(data)
+                    {
+                        if(data.responseText!='')
+                            alert(data.responseText);
+                    }
+                });
+            });
+        });
+    });
+</script>

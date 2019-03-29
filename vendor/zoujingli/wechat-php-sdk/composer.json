@@ -1,0 +1,18 @@
+{
+  "type": "project",
+  "name": "980218641/wechat-php-sdk",
+  "homepage": "http://www.kancloud.cn/980218641/wechat-php-sdk",
+  "description": "WeChat development of SDK",
+  "license": "MIT",
+  "keywords": [
+    "wechat-php-sdk"
+  ],
+  "require": {
+    "php": ">=5.3.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Wechat\\": "./Wechat"
+    }
+  }
+}

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no">
+    <title>FMaster App下载</title>
+    <script>
+        document.addEventListener('touchmove', function(e){e.preventDefault()}, false);
+        // 基准大小
+        const baseSize = 32
+        // 设置 rem 函数
+        function setRem () {
+            // 当前页面宽度相对于 750 宽的缩放比例，可根据自己需要修改。
+            const scale = (document.documentElement.clientWidth = document.documentElement.clientWidth<=750 ? document.documentElement.clientWidth : 750) / 750
+
+            // 设置页面根节点字体大小
+            document.documentElement.style.fontSize = (baseSize * Math.min(scale, 2)) + 'px'
+        }
+        // 初始化
+        setRem()
+        // 改变窗口大小时重新设置 rem
+        window.onresize = function () {
+            setRem()
+        }
+    </script>
+    <style>
+        *{margin:0;padding:0;box-sizing: border-box;}
+        body{background:#fff;font-family: -apple-system, BlinkMacSystemFont, "PingFang SC","Helvetica Neue",STHeiti,"Microsoft Yahei",Tahoma,Simsun,sans-serif;}
+        a{text-decoration: none;}
+        li{list-style: none}
+        input,textarea{outline:none;resize:none}
+        /* 下载 */
+        body{width:23.4375rem;height: 100vh;margin: 0 auto;text-align: center;}
+        button{outline: none;}
+        .download{height: 100vh;
+            background: linear-gradient(to bottom, #0f59ae 0%,#0e4197 30%,#0e1f71 100%);
+        }
+        .logo{
+            width: 6.25rem;
+            height:8.875rem;
+            margin:0 auto .5rem;
+            padding-top: 2rem;
+        }
+        .logo img{
+            width: 6.25rem;
+            height:6.25rem;
+            border-radius: 50%;
+        }
+        .title{
+            text-align: center;
+            font-size: 1.125rem;
+            color: #fff;
+        }
+        .info{
+            font-size: 0.875rem;
+            color: #fff;
+            margin: 0.5rem 0;
+        }
+        .info span{
+            margin: 0 0.9375rem;
+        }
+        .ewm{
+            margin:6vh auto;
+        }
+        .ewm img{
+            width: 12rem;
+            height: 12rem;
+        }
+        .ewm p{
+            color: #fff;
+            text-align: center;
+            font-size: .875rem;
+        }
+        .downloadbtn{
+
+        }
+        .downloadbtn a{
+            display:inline-block;
+            width:16rem;
+            height:3rem;
+            line-height: 3rem;
+            background: #0adbfd;
+            color: #fff;
+            border-radius:1.5rem;
+            font-size: 1.2rem;
+        }
+        .downloadbtn p{
+            text-align: center;
+            /*font-weight: bold;*/
+            font-size: 1rem;
+            color: #fff;
+            margin-top: .5rem;
+            background: url("__PUBLIC__/public/upload/image/reg_img/apple.png") no-repeat left center;
+            background-size: 0.75rem 0.875rem;
+            padding-left: 1rem;
+            height: .875rem;
+            line-height: .875rem;
+            display: inline-block;
+        }
+        #ts{
+            position: fixed;
+            top:50%;
+            left:50%;
+            transform: translate(-50%,-50%);
+            background: #fff;
+            width:85%;
+            height:auto;
+            display: none;
+            border-radius: 0.3125rem;
+        }
+        #ts .ts-title{
+            padding: 1.5rem 1.5625rem 0.7rem;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        #ts .ts-body{
+            font-size:1.1rem;
+            margin: 0 0.625rem;
+            color: #666;
+        }
+        #ts .ts-footer{
+            text-align: right;
+            margin: 0.625rem .7rem 1rem 0;
+
+        }
+        #ts .ts-footer button{
+            font-size: 1.2rem;
+            background: none;
+            border:none;
+            color: #0adbfd;
+            cursor: pointer;
+            padding:.4rem 1.5rem;
+        }
+        .downloadbtn{display:flex;}
+        .downloadbtn a{
+            flex:1;
+            margin:0 1.2rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .downloadbtn a.ios{
+            background:#00a2ff url("__PUBLIC__/public/upload/image/reg_img//iOS.png") no-repeat 1.5rem center;
+            background-size: 1.8rem 1.8rem;
+            /*background: none;*/
+            border-radius:1.5rem;
+            border:1px solid #00a2ff;
+            text-indent:1.8rem;
+        }
+        .downloadbtn a.android{
+            background:#5fb800 url("__PUBLIC__/public/upload/image/reg_img/Android.png") no-repeat 1.5rem center;
+            background-size: 1.8rem 1.8rem;
+            /*background: none;*/
+            border-radius:1.5rem;
+            border:1px solid #5fb800;
+            text-indent:2.2rem;
+        }
+    </style>
+</head>
+<body>
+<!-- 交流中心App下载 -->
+<div class="download">
+    <div class="logo"><img src="__PUBLIC__/public/upload/image/reg_img/downlogo.png" alt=""></div>
+    <div class="title">仁脉圈交流中心</div>
+    <!--<div class="info"><span id="bb">版本：V1.0（builld 0）</span> <span id="dx">大小：15.8M</span></div>-->
+
+    <div class="ewm">
+        <img src="__PUBLIC__/public/upload/image/reg_img/ewm.png" alt="">
+        <p>或者用手机浏览器扫一扫安装</p>
+    </div>
+    <div class="downloadbtn">
+        <a onclick="download1('ios')" class="ios">iPhone</a>
+        <a onclick="download1('android')" class="android">Android</a>
+    </div>
+    <div id="ts">
+        <div class="ts-title">提示</div>
+        <div class="ts-body" id="downts">点击右上角按钮，然后在弹出菜单中，点击浏览器中打开，即可安装</div>
+        <div class="ts-footer"><button onclick="close1()">确定</button></div>
+    </div>
+</div>
+
+
+<script>
+    //    isIos();
+    function download1(val){
+
+        if(isWeiXin()){
+            // 是微信浏览器，执行操作
+            document.getElementById('ts').style.display = 'block';
+        }else if(val == 'ios'){
+            window.location.href="itms-services://?action=download-manifest&url=https://download.rmq168.com/software/manifest.plist";
+        }else{
+            window.location.href="http://download.rmq168.com/software/jlzx_app.apk";
+        }
+    }
+    function close1() {
+        document.getElementById('ts').style.display = 'none';
+    }
+    //判断是否是微信浏览器的函数
+    function isWeiXin(){
+        //window.navigator.userAgent属性包含了浏览器类型、版本、操作系统类型、浏览器引擎类型等信息，这个属性可以用来判断浏览器类型
+        var ua = window.navigator.userAgent.toLowerCase();
+        //通过正则表达式匹配ua中是否含有MicroMessenger字符串
+        if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    function isIos(){
+        var u = navigator.userAgent;
+        if(!!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/)){
+            document.getElementById('downts').innerHTML = '点击右上角按钮，然后在弹出菜单中，点击Safari中打开，即可安装';
+            document.getElementById('bb').innerHTML = '版本：V1.0.7（builld 7）';
+            document.getElementById('dx').innerHTML = '大小：52M';
+            return true;
+        }else{
+            return false;
+        }
+    }
+</script>
+
+</body>
+</html>

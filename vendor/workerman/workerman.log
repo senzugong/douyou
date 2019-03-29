@@ -1,0 +1,39 @@
+2018-11-20 10:23:41 pid:1 think\exception\ErrorException: Object of class Workerman\Worker could not be converted to string in D:\project\tp5\application\api\controller\Test.php:26
+Stack trace:
+#0 D:\project\tp5\application\api\controller\Test.php(26): think\Error::appError(4096, 'Object of class...', 'D:\\project\\tp5\\...', 26, Array)
+#1 [internal function]: app\api\controller\Test->onWorkerStart(Object(Workerman\Worker))
+#2 D:\project\tp5\vendor\workerman\workerman\Worker.php(2306): call_user_func(Array, Object(Workerman\Worker))
+#3 D:\project\tp5\vendor\workerman\workerman\Worker.php(1315): Workerman\Worker->run()
+#4 D:\project\tp5\vendor\workerman\workerman\Worker.php(1258): Workerman\Worker::forkWorkersForWindows()
+#5 D:\project\tp5\vendor\workerman\workerman\Worker.php(507): Workerman\Worker::forkWorkers()
+#6 D:\project\tp5\vendor\topthink\think-worker\src\Server.php(48): Workerman\Worker::runAll()
+#7 [internal function]: think\worker\Server->__construct()
+#8 D:\project\tp5\thinkphp\library\think\App.php(215): ReflectionClass->newInstanceArgs(Array)
+#9 D:\project\tp5\thinkphp\library\think\Loader.php(420): think\App::invokeClass('app\\api\\control...')
+#10 D:\project\tp5\thinkphp\library\think\App.php(386): think\Loader::controller('test', 'controller', false, 'Error')
+#11 D:\project\tp5\thinkphp\library\think\App.php(295): think\App::module(Array, Array, true)
+#12 D:\project\tp5\thinkphp\library\think\App.php(123): think\App::exec(Array, Array)
+#13 D:\project\tp5\thinkphp\start.php(18): think\App::run()
+#14 D:\project\tp5\server.php(6): require('D:\\project\\tp5\\...')
+#15 {main}
+2018-11-20 10:23:42 pid:1 Worker process terminated
+2018-11-20 10:24:01 pid:1 think\exception\ErrorException: Object of class Workerman\Worker could not be converted to string in D:\project\tp5\application\api\controller\Test.php:26
+Stack trace:
+#0 D:\project\tp5\application\api\controller\Test.php(26): think\Error::appError(4096, 'Object of class...', 'D:\\project\\tp5\\...', 26, Array)
+#1 [internal function]: app\api\controller\Test->onWorkerStart(Object(Workerman\Worker))
+#2 D:\project\tp5\vendor\workerman\workerman\Worker.php(2306): call_user_func(Array, Object(Workerman\Worker))
+#3 D:\project\tp5\vendor\workerman\workerman\Worker.php(1315): Workerman\Worker->run()
+#4 D:\project\tp5\vendor\workerman\workerman\Worker.php(1258): Workerman\Worker::forkWorkersForWindows()
+#5 D:\project\tp5\vendor\workerman\workerman\Worker.php(507): Workerman\Worker::forkWorkers()
+#6 D:\project\tp5\vendor\topthink\think-worker\src\Server.php(48): Workerman\Worker::runAll()
+#7 [internal function]: think\worker\Server->__construct()
+#8 D:\project\tp5\thinkphp\library\think\App.php(215): ReflectionClass->newInstanceArgs(Array)
+#9 D:\project\tp5\thinkphp\library\think\Loader.php(420): think\App::invokeClass('app\\api\\control...')
+#10 D:\project\tp5\thinkphp\library\think\App.php(386): think\Loader::controller('test', 'controller', false, 'Error')
+#11 D:\project\tp5\thinkphp\library\think\App.php(295): think\App::module(Array, Array, true)
+#12 D:\project\tp5\thinkphp\library\think\App.php(123): think\App::exec(Array, Array)
+#13 D:\project\tp5\thinkphp\start.php(18): think\App::run()
+#14 D:\project\tp5\server.php(6): require('D:\\project\\tp5\\...')
+#15 {main}
+2018-11-20 10:24:02 pid:1 Worker process terminated
+2018-11-21 17:24:03 pid:1 Worker process terminated

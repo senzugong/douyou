@@ -1,0 +1,129 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form"  data-params='{"dataName":"member","key":"id","action":"list"}' method="get" action="{:url("$classuri/index")}">
+                    <div class="layui-form">
+
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="username" placeholder="用户名">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="phone" placeholder="手机号">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger ajax-all" data-name="id" data-params='{"url": "{:url("$classuri/del")}","data":"field=delete","method":"post","confirm":"true","dataName":"member","key":"id","action":"del"}'>
+                        <i class="iconfont">&#xe626;</i> 删除
+                    </button>
+                    <button class="layui-btn layui-btn-small modal" data-params='{"content": "add.html", "title": "添加用户","type":"2"}'>
+                        <i class="iconfont">&#xe649;</i> 添加
+                    </button>
+                </div>
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="30"><input type="checkbox" id="checkall" data-name="id" lay-filter="check" lay-skin="primary"></th>
+                            <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
+
+                            <th>用户账号</th>
+                            <th>手机号</th>
+                            <th>电子邮箱</th>
+                            <th>登录次数</th>
+                            <th>最后登录</th>
+                            <th width="80">审核</th>
+                            <th width="250">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div class="add-subcat">
+    <form id="form1" class="layui-form" data-params='{"dataName":"member","key":"id","bind":true,"action":"add"}'method="post" action='{:url("$classuri/pass")}'>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户账号</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" readonly="readonly"  placeholder="用户账号" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-inline">
+                <input type="password" name="password" jq-verify="required" jq-error="请输入密码" placeholder="请输入密码" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">再次输入密码</label>
+            <div class="layui-input-inline">
+                <input type="password" name="repassword" required jq-verify="required" jq-error="请再次输入密码" placeholder="请再次输入密码" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="hidden" name="id" value="" autocomplete="off" class="layui-input ">
+                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td><input type="checkbox" name="id" value="{{ item.id}}" lay-skin="primary"></td>
+        <td>{{ item.id}}</td>
+        <td>{{ item.username}}</td>
+        <td>{{ item.phone }}</td>
+        <td>{{ item.mail}}</td>
+        <td>{{ item.login_num }}</td>
+        <td>{{ item.login_at }}</td>
+        <td><input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用" value="1" {{#if (item.status){ }}checked="checked" {{# } }} lay-filter="ajax" data-params='{"url":"{:url("$classuri/setstatus")}","method":"post","data":"id={{ item.id}}&field=status"}'> </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": "edit.html","url":"{:url("$classuri/edit")}","type":"2", "title": "{{item.username}}","key":"id","data":"id={{item.id}}"}'>
+                    <i class="iconfont">&#xe653;</i>编辑
+                </button>
+
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"600px,300px","title":"设置密码","type":"1","data":"id={{ item.id }}","form":"#form1","bind":"true","action":"pass","url":"{:url("$classuri/pass")}"}'>
+                    <i class="iconfont">&#xe653;</i>设置密码
+                </button>
+
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"id={{ item.id }}&field=delete","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>删除
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>

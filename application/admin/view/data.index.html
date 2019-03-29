@@ -1,0 +1,66 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger export" id="export" data-params='{"dataName":"database","key":"ids","action":"{:url("export")}"}'>
+                        <i class="iconfont">&#xe649;</i> 立即备份
+                    </button>
+
+                </div>
+                <div class="layui-form">
+
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"database","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="30"><input type="checkbox"  id="checkall" data-name="ids" lay-filter="check" lay-skin="primary"></th>
+                            <th>表名</th>
+                            <th>数据量</th>
+                            <th>数据大小</th>
+                            <th>创建时间</th>
+                            <th>备份状态</th>
+                            <th width="200">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"database","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td><input type="checkbox"  name="ids" value="{{ item.name}}" lay-skin="primary"></td>
+        <td>{{ item.name}}</td>
+        <td>{{ item.rows}}</td>
+        <td>{{ item.data_length}}</td>
+        <td>{{ item.create_time }}</td>
+
+        <td>等待备份....</td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/optimize")}","data":"ids={{ item.name }}","method":"get","confirm":"true"}'>
+                    优化表
+                </button>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/repair")}","data":"ids={{ item.name }}","method":"get","confirm":"true"}'>
+                    修复表
+                </button>
+
+            </div>
+
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+
+<script>
+    layui.use('list');
+
+</script>

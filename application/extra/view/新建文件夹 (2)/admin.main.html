@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQadmin后台模板</title>
+    <meta name="description" content="一款由JQ酷为了省时间而打造的后台管理模板，封装了常用的JS方法，使得你可以写更少甚至不写js代码就可以完成整个后台的搭建。模板使用了layui，模块化开发，本套模板是按着本人这些年来的习惯编写，也为方便以后搭建项目的便捷而编写" />
+    <meta name="keywords" content="jqadmin,后台模板,layui后台模板" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <!-- load css -->
+    <link rel="stylesheet" type="text/css" href="__CSS__/bootstrap.min.css?v=v3.3.7" media="all">
+    <link rel="stylesheet" type="text/css" href="__CSS__/font/iconfont.css?v=1.0.0" media="all">
+    <link rel="stylesheet" type="text/css" href="__CSS__/layui.css?v=1.0.9" media="all">
+    <link rel="stylesheet" type="text/css" href="__CSS__/jqadmin.css?v=1.3.4" media="all">
+</head>
+<body>
+{block name="style"}{/block}
+
+{block name="content"}{/block}
+</body>
+{include file="extra@admin/main/top"}
+{include file="extra@admin/main/left"}
+<script type="text/javascript" src="__JS__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/static/admin/jonny/js/',
+        version: "2.0.0"
+    }).extend({
+        jqelem: 'jqmodules/jqelem',
+        jqmenu: 'jqmodules/jqmenu',
+        tabmenu: 'jqmodules/tabmenu',
+        jqajax: 'jqmodules/jqajax',
+        jqtable: 'jqmodules/jqtable',
+        jqbind: 'jqmodules/jqbind',
+        jqdate: 'jqmodules/jqdate',
+        jqtags: 'jqmodules/jqtags',
+        jqform: 'jqmodules/jqform',
+        echarts: 'lib/echarts',
+        webuploader: 'lib/webuploader',
+        jqcitys: "jqmodules/jqcitys"
+    })
+</script>
+{block name="script"}{/block}
+</html>

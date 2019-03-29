@@ -1,0 +1,68 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+
+                        <table id="example" class="layui-table jq-even" data-params='{"dataName":"dataName_import","key":"id"}'>
+                            <thead>
+                            <tr>
+
+                                <th>备份名称</th>
+                                <th>卷数</th>
+                                <th>压缩</th>
+                                <th>数据大小</th>
+                                <th>备份时间</th>
+                                <th >状态</th>
+                                <th width="200">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="list"></tbody>
+                        </table>
+
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"dataName_import","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+
+        <td>{{ item.time}}</td>
+        <td>{{ item.part}}</td>
+        <td>{{ item.compress}}</td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.create_at }}</td>
+        <td>-</td>
+        <td>
+            <div class="layui-btn-group">
+
+
+
+                <button class="layui-btn layui-btn-mini layui-btn-danger import" data-params='{"url": "{:url("$classuri/revert")}","action":"revert","time":"{{ item.time }}","method":"post"}'>
+                    还原
+                </button>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"time={{ item.time }}","method":"get","confirm":"true"}'>
+                    删除
+                </button>
+
+            </div>
+
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+
+{include file="public/bottom"}
+
+<script>
+    layui.use('list');
+
+</script>

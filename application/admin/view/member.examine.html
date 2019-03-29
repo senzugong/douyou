@@ -1,0 +1,87 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <section class="panel panel-padding">
+                <form id="form1" class="layui-form " data-params='{"dataName":"member","key":"user_id","bind":true,"action":"add"}' action="__SELF__" method="post">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">用户id</label>
+                        <div class="layui-input-block" style="line-height: 36px;">
+                            {$vo.user_id}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">用户昵称</label>
+                        <div class="layui-input-block" style="line-height: 36px;">
+                            {$vo.user_name}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">真实姓名</label>
+                        <div class="layui-input-block" style="line-height: 36px;">
+                            {$vo.true_name}
+                        </div>
+                    </div>
+                    <div class="layui-form-item ">
+                        <label class="layui-form-label">身份证号</label>
+                        <div class="layui-input-block" style="line-height: 36px;">
+                            {$vo.card_num}
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">身份正面照</label>
+                        <div class="layui-input-block">
+                            <div class="imgbox">
+                                <img src="/{$vo.img1}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">身份反面照</label>
+                        <div class="layui-input-block">
+                            <div class="imgbox">
+                                <img src="/{$vo.img2}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">手持身份照</label>
+                        <div class="layui-input-block">
+                            <div class="imgbox">
+                                <img src="/{$vo.img3}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">审核结果</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="status" required value="1" jq-verify="required" jq-error="请选择审核结果" title="通过" {if $vo.status!=2} checked {/if}>
+                            <input type="radio" name="status" required value="2" jq-verify="required" jq-error="请选择审核结果" title="不通过" {if $vo.status==2} checked {/if}>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            {if isset($vo['user_id'])}<input type='hidden' value='{$vo.user_id}' name='user_id'/>{/if}
+                            <button class="layui-btn" jq-submit lay-filter="submit">审核</button>
+                            <button type="reset" class="layui-btn layui-btn-primary" onclick="closeWindow();">返回</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+{include file="public/bottom"}
+<script>
+    var $, JQquery;
+    layui.use('myform');
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    function closeWindow() {
+        if(index){
+            parent.layer.close(index);
+        }
+    }
+</script>
+

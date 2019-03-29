@@ -1,0 +1,207 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <!--顶部统计数据预览 -->
+    <div class="row">
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-blue"> <i class="iconfont">&#xe672;</i>
+                </div>
+                <div class="value tab-menu">
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="用户列表"><i class="iconfont " data-icon='&#xe672;'></i>
+                        <h1>{$usercount}</h1>
+                    </a>
+
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="用户列表"> <i class="iconfont " data-icon='&#xe672;'></i><span>用户总量</span></a>
+
+                </div>
+            </section>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-commred"> <i class="iconfont">&#xe674;</i>
+                </div>
+                <div class="value tab-menu">
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="用户列表"> <i class="iconfont " data-icon='&#xe674;'></i>
+                        <h1>{$now_user_count}</h1>
+                    </a>
+
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="用户列表"> <i class="iconfont " data-icon='&#xe674;'></i><span>今日注册</span></a>
+
+                </div>
+            </section>
+        </div>
+
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-dark-green"> <i class="iconfont">&#xe6bc;</i>
+                </div>
+                <div class="value tab-menu">
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="高级认证"> <i class="iconfont " data-icon='&#xe6bc;'></i>
+                        <h1>{$article_count}</h1>
+                    </a>
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="高级认证"> <i class="iconfont " data-icon='&#xe6bc;'></i><span>已高级认证</span></a>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-yellow-green"> <i class="iconfont">&#xe649;</i>
+                </div>
+                <div class="value tab-menu">
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="待审核认证"> <i class="iconfont " data-icon='&#xe649;'></i>
+                        <h1>{$now_article_count}</h1>
+                    </a>
+                    <a href="javascript:;" data-url="admin/member/index.html" data-parent="true" data-title="待审核认证"> <i class="iconfont " data-icon='&#xe649;'></i><span>待审核认证</span></a>
+                </div>
+            </section>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-orange"> <i class="iconfont"></i>
+                </div>
+                <div class="value tab-menu"> <!--bind="1" 这个阻止跳转-->
+                    <a href="javascript:;" data-url="admin/suggest/index.html" data-parent="true" data-title="反馈列表"> <i class="iconfont " data-icon=""></i>
+                        <h1>{$comment_count}</h1>
+                    </a>
+                    <a href="javascript:;" data-url="admin/suggest/index.html" data-parent="true" data-title="反馈列表"> <i class="iconfont " data-icon=""></i><span>反馈总数</span></a>
+                </div>
+            </section>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-md-2">
+            <section class="panel">
+                <div class="symbol bgcolor-yellow"> <i class="iconfont"></i>
+                </div>
+                <div class="value tab-menu">
+                    <a href="javascript:;" data-url="admin/suggest/index.html" data-parent="true" data-title="反馈列表"> <i class="iconfont " data-icon=""></i>
+                        <h1>{$now_comment_count}</h1>
+                    </a>
+                    <a href="javascript:;" data-url="admin/suggest/index.html" data-parent="true" data-title="反馈列表"> <i class="iconfont " data-icon=""></i><span>今日反馈</span></a>
+                </div>
+            </section>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-6">
+
+            <section class="panel">
+                <div class="panel-heading">
+                    最近七天文章统计
+                    <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
+                </div>
+                <div class="panel-body">
+                    <div class="echarts" id="article"></div>
+                </div>
+            </section>
+        </div>
+
+
+        <div class="col-xs-12 col-md-6">
+            <section class="panel">
+                <div class="panel-heading">
+                    网站信息
+                    <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
+                </div>
+                <div class="panel-body">
+                    <table class="layui-table">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <strong>ThinkPHP 版本</strong>：
+
+                            </td>
+                            <td>
+                                <a href="http://jqadmin.jqcool.net">{$Think.const.THINK_VERSION}</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>系统版本</strong>：
+
+                            </td>
+                            <td>
+                                V1.0.1
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>开发作者</strong>：
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>服务器操作系统</strong>：
+                            </td>
+
+                            <td>{:php_uname('s')}</td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>WEB运行环境</strong>：
+                            </td>
+                            <td>{:php_sapi_name()}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>上传大小限制</strong>：
+                            </td>
+                            <td>{:ini_get('upload_max_filesize')}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>服务器环境</strong>：
+                            </td>
+                            <td>windows</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-6">
+            <section class="panel">
+                <div class="panel-heading">
+                    用户男女统计
+                    <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
+                </div>
+                <div class="panel-body">
+                    <div class="echarts" id="sex"></div>
+                </div>
+            </section>
+        </div>
+
+
+
+
+        <div class="col-xs-12 col-md-6">
+
+            <section class="panel">
+                <div class="panel-heading">
+                    最近七天用户注册数
+                    <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
+                </div>
+                <div class="panel-body">
+                    <div class="echarts" id="member"></div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+
+
+</div>
+{include file="public/bottom"}
+<script>
+
+    layui.use(['main', 'member']);
+</script>
+
+</html>

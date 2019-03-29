@@ -1,0 +1,56 @@
+<ul class='right-click-menu'>
+    <li><a href='javascript:;' data-event='fresh'>刷新</a></li>
+    <li><a href='javascript:;' data-event='close'>关闭</a></li>
+    <li><a href='javascript:;' data-event='other'>关闭其它</a></li>
+    <li><a href='javascript:;' data-event='all'>全部关闭</a></li>
+</ul>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <!-- logo区域 -->
+        <div class="jqadmin-logo-box">
+            <a class="logo" href="http://jqadmin.jqcool.net" title="jQAdmin">
+                <h1>jQadmin</h1>
+            </a>
+            <div class="menu-type"><i class="iconfont">&#xe61a;</i></div>
+        </div>
+
+        <!-- 主菜单区域 -->
+        <div class="jqadmin-main-menu">
+            <ul class="layui-nav clearfix" id="menu" lay-filter="main-menu">
+
+            </ul>
+
+        </div>
+        <!-- 头部右侧导航 -->
+        <div class="header-right">
+            <ul class="layui-nav jqadmin-header-item right-menu">
+                <li class="layui-nav-item first">
+                    <a href="javascript:;">
+                        <cite> admin</cite>
+                        <span class="layui-nav-more"></span>
+                    </a>
+
+                    <dl class="layui-nav-child">
+                        <dd class="tab-menu">
+                            <a href="javascript:;" data-url="user-info.html" data-title="个人信息"> <i class="iconfont " data-icon='&#xe672;'>&#xe672; </i><span>个人信息</span></a>
+                        </dd>
+                        <dd>
+                            <a href=""><i class="iconfont ">&#xe64b; </i>退出</a>
+                        </dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item tab-menu"><a class="msg" href="javascript:;" data-url="msg.html" data-title="站内信息"><i class="iconfont" data-icon='&#xe63c;'>&#xe63c; </i><span class="msg-num">1</span></a></li>
+            </ul>
+            <button title="刷新" class="layui-btn layui-btn-normal fresh-btn"><i class="iconfont">&#xe62e; </i> </button>
+        </div>
+    </div>
+    <!-- 底部区域 -->
+    <div class="layui-footer jqadmin-foot">
+        <div class="layui-mian">
+            <p class="jqadmin-copyright">
+                <span class="layui">2017 &copy;</span> Write by Paco,<a href="http://www.jqcool.net">jQAdmin</a>. 版权所有 <span class="layui">依赖前端框架layui</span>
+                <button type="button" class="layui-btn  layui-btn-small my-tips"> <i class="iconfont">&#xe63b;</i> 打赏作者</button>
+            </p>
+        </div>
+    </div>
+</div>

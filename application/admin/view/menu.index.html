@@ -1,0 +1,125 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="add-subcat">
+    <form id="form1" class="layui-form"   data-params='{"dataName":"menu-list","key":"id","bind":true,"action":"add"}' method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">上级菜单</label>
+            <div class="layui-input-inline">
+                <select name="pid"  jq-verify="required" jq-error="请选择上级菜单">
+                    <!--{foreach $menus as $menu}-->
+                    <!--{eq name='menu.id' value='$vo.pid|default=0'}-->
+                    <option selected  value='{$menu.id}'>{$menu.spl}{$menu.title}</option>
+                    <!--{else}-->
+                    <option  value='{$menu.id}'>{$menu.spl}{$menu.title}</option>
+                    <!--{/eq}-->
+                    <!--{/foreach}-->
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">菜单名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" required jq-verify="required" jq-error="请输入菜单名称" placeholder="请输入菜单名称" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">菜单连接</label>
+            <div class="layui-input-block">
+                <input type="text" name="url" required jq-verify="required" jq-error="请输入菜单连接" placeholder="请输入菜单连接" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">图标</label>
+            <div class="layui-input-inline">
+                <input type="text" name="icon" placeholder="图标" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <input type="radio" name="status" title="启用" value="1" checked />
+                <input type="radio" name="status" title="禁用" value="0" />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger ajax-all" data-params='{"url": "{:url("$classuri/del")}","data":"field=delete","method":"post","confirm":"true","dataName":"menu-list","key":"id","action":"del"}'>
+                        <i class="iconfont">&#xe626;</i> 删除
+                    </button>
+
+                    <button class="layui-btn layui-btn-small modal" data-params='{"content":".add-subcat","area":"600px,430px","title":"添加菜单","action":"add","url":"{:url("$classuri/add")}"}'>
+                        <i class="iconfont">&#xe649;</i> 添加
+                    </button>
+                </div>
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"menu-list","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="30"><input type="checkbox" id="checkall" data-name="id" lay-filter="check" lay-skin="primary"></th>
+                            <th width="70"><span class="order" data-params='{"field":"id","sort":"asc"}'> id</span></th>
+                            <th width="60"><span class="order" data-params='{"field":"sort","sort":"asc"}'>排序</span></th>
+                            <th>菜单名称</th>
+                            <th>菜单连接</th>
+                            <th width="80">状态</th>
+                            <th width="210">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"menu-list","select":"#select-tpl","selectid":"#pid-select"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td><input type="checkbox" name="id" value="{{ item.id}}" lay-skin="primary"></td>
+        <td>{{ item.id}}</td>
+        <td><span class="edit" data-params='{"url":"{:url("$classuri/gosort")}","field":"sort","data":"id={{ item.id}}"}'>{{item.sort}}</span></td>
+        <td>{{ item.spl }}{{ item.title }}</span></td>
+        <td>{{ item.url }}</td>
+        <td><input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用" value="1" {{#if (item.status){ }}checked="checked" {{# } }} lay-filter="ajax" data-params='{"url":"{:url("$classuri/setstatus")}","method":"post","data":"id={{ item.id}}&field=status"}'> </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"url":"{:url("$classuri/edit")}","content": ".add-subcat","area":"600px,430px","title":"编辑菜单","type":"1","data":"id={{ item.id }}","form":"#form1","bind":"true","action":"edit"}'>
+                    <i class="iconfont">&#xe653;</i>编辑
+                </button>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"id={{ item.id }}&field=delete","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>删除
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+<script id="select-tpl" type="text/html" data-params='{"dataName":"menu-list"}'>
+    <option value="0" data-level="0">顶级分类</option>
+    {{# layui.each(d.list, function(index, item){ }}
+    <option value="{{ item.id}}" data-level="{{ item.level}}"> {{ strRepeat('&nbsp;&nbsp;',item.level)}} {{# if(item.level>0){ }} ├&nbsp; {{# } }} {{ item.title}}</option>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    if(index){
+        parent.layer.close(index);
+    }
+</script>

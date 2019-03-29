@@ -1,0 +1,106 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <section class="panel panel-padding">
+                <form id="form1" class="layui-form" data-params='{"action":"__SELF__"}' action="__SELF__"   method="post">
+                    <div class="layui-tab" lay-filter="check">
+                        <ul class="layui-tab-title">
+                            <li class="layui-this" lay-id="1">后台设置</li>
+                        </ul>
+                        <div class="layui-tab-content">
+                            <div class="layui-tab-item layui-show">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">网站标题</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="website_title" required jq-verify="required" value="{:sysconf('website_title')}" jq-error="请输入网站标题" placeholder="请输入网站标题" autocomplete="off" class="layui-input ">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">网站关键cn</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="website_keywords" required jq-verify="required" value="{:sysconf('website_keywords')}" jq-error="请输入网站关键词" placeholder="请输入网站关键词" autocomplete="off" class="layui-input ">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">网站描述</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="website_desacription" required jq-verify="required" value="{:sysconf('website_desacription')}" jq-error="请输入网站描述"  placeholder="请输入网站描述" autocomplete="off" class="layui-input ">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">CNZZ <span class="nowrap">(友盟统计)</span></label>
+                                    <div class='layui-input-block'>
+                                        <input type="text" name="tongji_cnzz_key" maxlength="32" required jq-verify="required"  placeholder="请输入10位CNZZ统计应用ID" value="{:sysconf('tongji_cnzz_key')}" class="layui-input">
+                                        <p class="help-block">友盟统计应用ID，可以在<a target="_blank" href="https://web.umeng.com">友盟网站统计</a>申请并获取</p>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">是否允许评论</label>
+                                    <div class="layui-input-block">
+
+                                        {if sysconf("is_comment_allow")}
+                                        <input type="radio" name="is_comment_allow" checked value="1" title="是">
+                                        <input type="radio" name="is_comment_allow"  value="0" title="否">
+                                        {else}
+                                        <input type="radio" name="is_comment_allow" value="1" title="是">
+                                        <input type="radio" name="is_comment_allow"  checked value="0" title="否">
+                                        {/if}
+
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">文章是否需要审核</label>
+                                    <div class="layui-input-block">
+                                        {if sysconf("is_article_allow")}
+                                        <input type="radio" name="is_article_allow" checked value="1" title="是">
+                                        <input type="radio" name="is_article_allow"  value="0" title="否">
+                                        {else}
+                                        <input type="radio" name="is_article_allow" value="1" title="是">
+                                        <input type="radio" name="is_article_allow"  checked value="0" title="否">
+                                        {/if}
+
+
+
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">是否开启注册</label>
+                                    <div class="layui-input-block">
+
+                                        {if sysconf("is_register_allow")}
+                                        <input type="radio" name="is_register_allow" checked value="1" title="是">
+                                        <input type="radio" name="is_register_allow"  value="0" title="否">
+                                        {else}
+                                        <input type="radio" name="is_register_allow" value="1" title="是">
+                                        <input type="radio" name="is_register_allow"  checked value="0" title="否">
+                                        {/if}
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" jq-submit jq-filter="submit" jq-tab="true">立即提交</button>
+                            <button class="layui-btn" onclick="javascript:history.back(-1);"><i class="fa fa-return"></i>
+                                返回上一页
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+{include file="public/bottom"}
+<script>
+    layui.use('simpleform');
+</script>

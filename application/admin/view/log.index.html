@@ -1,0 +1,64 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="group-button">
+                    <button class="layui-btn layui-btn-small layui-btn-danger ajax-all" data-name="id" data-params='{"url": "{:url("$classuri/del")}","data":"field=delete","method":"post","confirm":"true","dataName":"leave","key":"id1","action":"del"}'>
+                        <i class="iconfont">&#xe626;</i> 删除
+                    </button>
+                </div>
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"leave","key":"id"}'>
+                        <thead>
+                        <tr>
+                            <th width="30"><input type="checkbox" id="checkall" data-name="id" lay-filter="check" lay-skin="primary"></th>
+                            <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
+
+                            <th>操作者</th>
+                            <th>节点</th>
+                            <th>行为</th>
+                            <th>操作内容</th>
+                            <th>操作位置</th>
+                            <th>操作时间</th>
+                            <th width="142">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"leave","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td><input type="checkbox" name="id" value="{{ item.id}}" lay-skin="primary"></td>
+        <td>{{ item.id}}</td>
+        <td>{{ item.username}}</td>
+        <td>{{ item.node}}</td>
+        <td>{{ item.action }}</td>
+        <td>{{ item.content}}</td>
+        <td>{{ item.ip }}</td>
+        <td>{{ item.create_at }}</td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"id={{ item.id }}&field=delete","method":"post","confirm":"true"}'>
+                    <i class="iconfont">&#xe626;</i>删除
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>
