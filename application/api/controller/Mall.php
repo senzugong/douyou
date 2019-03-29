@@ -38,16 +38,17 @@ class Mall extends BasicApi
         $page = $request->param('page', 1);
         $type = $request->param('type', 1);  // 1是我要购买 2是我要出售
         // 获取发布的记录
-        $list =UsdtMall::alias('a')
+        $list['mall_list'] =UsdtMall::alias('a')
             ->join('dw_users b', 'a.user_id = b.user_id')
             ->where("a.type = $type and a.status IN (0,1)")
             ->field('b.user_name,b.user_avatar,a.*')
             ->order('a.usdt_price asc')
             ->page($page)
             ->select();
-        foreach($list as &$v){
+        foreach($list['mall_list'] as &$v){
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
         }
+        $list['mall_count'] =  UsdtMall::where("a.type = $type and a.status IN (0,1)")->count();
         return $this->response($list);
     }
 
@@ -246,7 +247,7 @@ class Mall extends BasicApi
         }
         $userInfo = $request->userInfo;
         $type  = $request->post('type');
-        $count = UsdtMall::where("'user_id'=>{$userInfo['user_id']}  and type =$type and status !=3")->count();
+        $count = UsdtMall::where("'user_id'={$userInfo['user_id']}  and type =$type and status !=3")->count();
         if($count >=2 ){
             return $this->response('当前只能发布两条数据', 304);
         }
@@ -316,17 +317,19 @@ class Mall extends BasicApi
         // 状态调整
         if ($status == 1) {
             // 上架中
-            $status = ['!=', 4];
+            $status = " status != 3 ";
         } else {
             // 下架
-            $status = 4;
+            $status = " status = 3";
         }
         // 发布的挂单
-        $usdtMall = $userInfo->usdtMall()
-            ->where(['status'=> $status])
+        $list['usdtMall'] = $userInfo->usdtMall()
+            ->where($status)
             ->page($page)
             ->select();
-        return $this->response($usdtMall);
+        $list['count']  = $userInfo->usdtMall()
+            ->where($status)->count();
+        return $this->response($list);
     }
 
     /**
