@@ -48,7 +48,7 @@ class Mall extends BasicApi
         foreach($list['mall_list'] as &$v){
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
         }
-        $list['mall_count'] =  UsdtMall::where("a.type = $type and a.status IN (0,1)")->count();
+        $list['mall_count'] =  UsdtMall::where("type = $type and status IN (0,1)")->count();
         return $this->response($list);
     }
 
@@ -70,7 +70,7 @@ class Mall extends BasicApi
         $userInfo = $request->userInfo;
         // 发布单
         $usdtMall = UsdtMall::get($mall_id);
-        $usdtNum = 0;
+        $usdtNum = bcdiv($money,$usdtMall['usdt_price'],2);
         // 订单号
         $order_sn = sha1($userInfo->user_id . $mall_id . $money . microtime());
         Db::startTrans();
@@ -83,14 +83,14 @@ class Mall extends BasicApi
             ]);
             // 发布是收购usdt，要扣除用户usdt
             if ($usdtMall['type'] == 2) {
-                $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $overNum, 4)]);
+                $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($overNum,1.02,2), 4)]);
                 // USDT日志
                 UsdtLog::create([
                     'user_id'=> $userInfo->user_id,
                     'log_content'=> '场外交易出售USDT',
                     'usdt_charge_type'=> 1,
                     'type'=> 1, // 1 支出 2转入
-                    'chance_usdt'=> $overNum,
+                    'chance_usdt'=> bcmul($overNum,1.02,2),
                     'dw_usdt'=> $userInfo->dw_usdt,
                     'add_time'=> time(),
                 ]);
@@ -281,7 +281,7 @@ class Mall extends BasicApi
             if ($type == 1) {
                 // 扣除usdt
                 $userInfo->save([
-                    'dw_usdt'=> bcsub($userInfo->dw_usdt, $usdt_num, 4),
+                    'dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 2),
                 ]);
                 // USDT日志
                 UsdtLog::create([
@@ -289,7 +289,7 @@ class Mall extends BasicApi
                     'log_content' => '场外交易出售USDT',
                     'usdt_charge_type' => 1,
                     'type' => 1, // 1 支出 2转入
-                    'chance_usdt' => $usdt_num,
+                    'chance_usdt' =>  bcmul($usdt_num,1.02,2),
                     'dw_usdt' => $userInfo->dw_usdt,
                     'add_time' => time(),
                 ]);
@@ -300,6 +300,7 @@ class Mall extends BasicApi
         } catch (\Exception $exception) {
             // 回滚
             Db::rollback();
+            return $this->response('发布失败', 306);
         }
     }
 
@@ -397,7 +398,7 @@ class Mall extends BasicApi
                     $mall_info->save(['status'=>3]);
                     // 用户USDT余额
                     $userInfo->save([
-                        'dw_usdt'=>bcadd($userInfo['dw_usdt'], $mall_info['usdt_num'], 4)
+                        'dw_usdt'=>bcadd($userInfo['dw_usdt'], bcmul($mall_info['usdt_num'],1.02,2), 4)
                     ]);
                     // USDT日志
                     UsdtLog::create([
@@ -405,7 +406,7 @@ class Mall extends BasicApi
                         'log_content' => '场外交易-下架出售USDT',
                         'usdt_charge_type' => 1,
                         'type' => 2, // 1 支出 2转入
-                        'chance_usdt' => $mall_info['usdt_num'],
+                        'chance_usdt' => bcmul($mall_info['usdt_num'],1.02,2),
                         'dw_usdt' => $userInfo->dw_usdt,
                         'add_time' => time(),
                     ]);
@@ -438,7 +439,7 @@ class Mall extends BasicApi
                     ]);
                     // 用户USDT余额
                     $userInfo->save([
-                        'dw_usdt'=> bcadd($userInfo->dw_usdt, $usdt_mall, 4)
+                        'dw_usdt'=> bcadd($userInfo->dw_usdt, bcmul($usdt_mall,1.02,2), 4)
                     ]);
                     // USDT日志
                     UsdtLog::create([
@@ -446,7 +447,7 @@ class Mall extends BasicApi
                         'log_content' => '场外交易-下架出售USDT',
                         'usdt_charge_type' => 1,
                         'type' => 2, // 1 支出 2转入
-                        'chance_usdt' => $usdt_mall,
+                        'chance_usdt' =>bcmul($usdt_mall,1.02,2),
                         'dw_usdt' => $userInfo->dw_usdt,
                         'add_time' => time(),
                     ]);
@@ -488,7 +489,7 @@ class Mall extends BasicApi
                         // 下单用户
                         $userOrder = $item->orderUser;
                         $userOrder->save([
-                            'dw_usdt'=>bcadd($userOrder->dw_usdt, $item->order_usdt_num, 4)
+                            'dw_usdt'=>bcadd($userOrder->dw_usdt, bcmul($item->order_usdt_num,1.02,2), 4)
                         ]);
                         // USDT日志
                         UsdtLog::create([
@@ -496,7 +497,7 @@ class Mall extends BasicApi
                             'log_content' => '场外交易-下架出售USDT',
                             'usdt_charge_type' => 1,
                             'type' => 2, // 1 支出 2转入
-                            'chance_usdt' => $item->order_usdt_num,
+                            'chance_usdt' =>bcmul($item->order_usdt_num,1.02,2),
                             'dw_usdt' => $userOrder->dw_usdt,
                             'add_time' => time(),
                         ]);
@@ -549,7 +550,7 @@ class Mall extends BasicApi
                 // 扣除Usdt
                 $usdt_num = bcsub($usdtMall['usdt_num'], $usdtMall['over_usdt'], 4);
                 $userInfo->save([
-                    'dw_usdt' => bcsub($userInfo->dw_usdt, $usdt_num, 4)
+                    'dw_usdt' => bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 4)
                 ]);
                 // USDT日志
                 UsdtLog::create([
@@ -557,7 +558,7 @@ class Mall extends BasicApi
                     'log_content' => '场外交易-上架出售USDT',
                     'usdt_charge_type' => 1,
                     'type' => 1, // 1 支出 2转入
-                    'chance_usdt' => $usdt_num,
+                    'chance_usdt' => bcmul($usdt_num,1.02,2),
                     'dw_usdt' => $userInfo->dw_usdt,
                     'add_time' => time(),
                 ]);
@@ -599,14 +600,14 @@ class Mall extends BasicApi
             if ($mall['type'] == 2) {
                 // 退回下单人账户
                 $orderUser = $order->orderUser;
-                $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, $usdt, 4)]);
+                $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, bcmul($usdt,1.02,2), 4)]);
                 // USDT日志
                 UsdtLog::create([
                     'user_id' => $orderUser->user_id,
                     'log_content' => '场外交易-取消交易USDT',
                     'usdt_charge_type' => 1,
                     'type' => 2, // 1 支出 2转入
-                    'chance_usdt' => $usdt,
+                    'chance_usdt' => bcmul($usdt,1.02,2),
                     'dw_usdt' => $orderUser->dw_usdt,
                     'add_time' => time(),
                 ]);

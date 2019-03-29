@@ -34,7 +34,7 @@ class MallValidate extends Validate
         'money.require'=> '金额不能为空!',
         'pay_type'=> '支付方式错误',
         'gathering_id'=> '付款ID不能为空',
-        'usdt_num'=> 'usdt数量不能为空',
+        'usdt_num.require'=> 'usdt数量不能为空',
         'usdt_num.gt'=> 'usdt数量必须大于等于15个',
         'usdt_price'=> 'usdt价格不能缺',
         'mix_rmb'=> '最小交易金额必填',
@@ -59,7 +59,7 @@ class MallValidate extends Validate
     protected function checkUsdtnum($value,$rule,$data){
         $userInfo = request()->userInfo;
         if($data['type'] ==1){ // 出售usdt
-            if($value >$userInfo['dw_usdt']){
+            if($value > bcmul($userInfo['dw_usdt'],1.02,2)){
                 return '你的账户usdt不足!';
             }else{
                 return true;
@@ -99,7 +99,7 @@ class MallValidate extends Validate
         }
         // 用户出售usdt
         $overNum = bcsub($usdtMall['usdt_num'], $usdtMall['over_usdt'], 2);
-        if ($usdtMall['type'] == 1 && $overNum < $userInfo['dw_usdt']) {
+        if ($usdtMall['type'] == 1 && bcmul($overNum,1.02,2) > $userInfo['dw_usdt']) {
             return '你的账户usdt不足!';
         }
         return true;
@@ -130,7 +130,7 @@ class MallValidate extends Validate
         // 用户信息
         $userInfo = request()->userInfo;
         // 挂单是收购时，判断用户是否有充足的usdt
-        if ($mall_info['type'] == 2 && $userInfo->dw_usdt < $value) {
+        if ($mall_info['type'] == 2 && $userInfo->dw_usdt < bcmul($value,1.02,2)) {
             return '你的USDT不足，';
         }
         return true;
