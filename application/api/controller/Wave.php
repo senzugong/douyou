@@ -98,11 +98,11 @@ class Wave extends BasicApi
             ->where('status = 1')
             ->field("sum(dw_money) as dw_money,user_id")->group('user_id')->select();
 
-        $list['best_money']['best_dw'] =$best_money[0]['dw_money'];
-        $list['best_money']['raword_num'] =BtcPost::whereTime('add_time','today')
+        $list['best_money']['best_dw'] = !isset($best_money[0]) ? 0 :$best_money[0]['dw_money'];
+        $list['best_money']['raword_num'] = !isset($best_money[0]) ? 0 :BtcPost::whereTime('add_time','today')
             ->where(['user_id'=>$best_money[0]['user_id'],'status'=>1])->count();
-        $list['best_money']['user_name'] = Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_name');
-        $list['best_money']['user_avatar'] = Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_avatar');
+        $list['best_money']['user_name'] = !isset($best_money[0]) ? '' : Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_name');
+        $list['best_money']['user_avatar'] = !isset($best_money[0]) ? '' : Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_avatar');
         $list['best_money']['user_avatar'] = $list['best_money']['user_avatar'] ? Config::get('image_url') .$list['best_money']['user_avatar']: '';
 
        if($rise && $fall){
@@ -140,6 +140,7 @@ class Wave extends BasicApi
         //猜中的数量
         $list['win_count'] = BtcPost::where(['user_id'=>$userInfo['user_id'],'status'=>1])->whereTime('add_time','today')->count();
         //排行
+        $list['rank'] = 0;
         foreach($best_money as $k=>$v){
             if($v['user_id'] == $userInfo['user_id'] ){
                 $list['rank'] = $k +1;

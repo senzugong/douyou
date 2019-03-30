@@ -636,4 +636,35 @@ class Mall extends BasicApi
         return $this->response($list);
     }
 
+    /**
+     * 获取付款信息
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\exception\DbException
+     */
+    public function gain_info(Request $request) {
+        $type_id = $request->post('type_id');
+        $gathering_id = $request->post('gathering_id');
+
+        switch ($type_id) {
+            case 1:
+                // 银行卡
+                $bank = UserBank::get($gathering_id);
+                break;
+            case 2:
+                // 微信
+                $bank = UserGathering::get($gathering_id);
+                $bank['gathering_img'] = Config::get('image_url');
+                break;
+            case 3:
+                // 支付宝
+                $bank = UserGathering::get($gathering_id);
+                $bank['gathering_img'] = Config::get('image_url');
+                break;
+            default:
+                return $this->response('获取类型错误', 306);
+                break;
+        }
+        return $this->response($bank);
+    }
 }
