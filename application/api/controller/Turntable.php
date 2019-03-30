@@ -309,7 +309,7 @@ class Turntable extends BasicApi
             ->page($page)
             ->select();
         foreach($list as &$v){
-         $v['game_raword']  = TurntableSet::where(['turntable_id'=>$v['id']])->find();
+         $v['game_raword']  = TurntableSet::where(['id'=>$v['turntable_id']])->find();
          $v['add_time']  = $this->getTime( $v['add_time']);
         }
         return $this->response($list);

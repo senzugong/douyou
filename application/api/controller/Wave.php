@@ -10,8 +10,11 @@ namespace app\api\controller;
 
 use app\api\validate\WaveValidate;
 use app\common\model\Btc;
+use app\common\model\BtcBasic;
 use app\common\model\BtcPost;
+use app\common\model\GamePostdata;
 use app\common\model\MoneyLog;
+use app\common\model\TurntableLog;
 use controller\BasicApi;
 use think\Config;
 use think\Db;
@@ -162,6 +165,65 @@ class Wave extends BasicApi
         return $this->response($list);
 
 
+    }
+
+    /**
+     * 获取历史战绩
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function history(Request $request) {
+        // 分页
+        $page = $request->param('page', 1);
+        $userInfo = $request->userInfo;
+        $list = BtcPost::where(['user_id'=> $userInfo->user_id])
+            ->page($page)
+            ->select();
+
+        return $this->response($list);
+    }
+
+    /**
+     * 统计收益
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function count_profit(Request $request) {
+        $userInfo = $request->userInfo;
+        // 获取赔率
+        $btcBasic = BtcBasic::find();
+        // 购买记录
+        $btcPost = BtcPost::whereTime('add_time', 'today')
+            ->where(['user_id'=> $userInfo->user_id, 'status'=> 1])
+            ->field('dw_money')
+            ->select();
+        $turntableLog = TurntableLog::whereTime('add_time', 'today')
+            ->where(['user_id'=> $userInfo->user_id, 'status'=> 1])
+            ->field('prize_money')
+            ->select();
+        $gamePostdata = GamePostdata::whereTime('add_time', 'today')
+            ->where(['user_id'=> $userInfo->user_id, 'status'=> 2])
+            ->field('win_money')
+            ->select();
+        // 今日收益
+        $money = 0;
+        foreach ($btcPost as $v) {
+            $money = bcadd($money, bcmul($v['dw_money'], $btcBasic['odds'], 4), 4);
+        }
+        foreach ($turntableLog as $v) {
+            $money = bcadd($money, $v['prize_money'], 4);
+        }
+        foreach ($gamePostdata as $v) {
+            $money = bcadd($money, $v['win_money'], 4);
+        }
+
+        return $this->response(['profit'=> $money]);
     }
 
     /**
