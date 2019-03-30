@@ -47,6 +47,7 @@ class Mall extends BasicApi
             ->select();
         foreach($list['mall_list'] as &$v){
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
+            $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],2);
         }
         $list['mall_count'] =  UsdtMall::where("type = $type and status IN (0,1)")->count();
         return $this->response($list);
@@ -622,6 +623,24 @@ class Mall extends BasicApi
         }
     }
 
+    /**
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+        public function detail_order(Request $request){
+            $order_id =$request->post('order_id');
+            if(!$order_id){
+                return $this->response('订单id不能为空!',304);
+            }
+            $detail_order = UsdtOrder::where(['order_id'=>$order_id])->find();
+            $detail_order['add_time'] = date('Y-m-d H:i:s',$detail_order['add_time']);
+            $detail_order['usdt_price'] = UsdtMall::where(['mall_id'=>$detail_order->mall_id])->value('usdt_price');
+            return $this->response($detail_order);
+
+        }
     /**默认支付方式
      * @param Request $request
      * @throws \think\db\exception\DataNotFoundException
@@ -654,12 +673,12 @@ class Mall extends BasicApi
             case 2:
                 // 微信
                 $bank = UserGathering::get($gathering_id);
-                $bank['gathering_img'] = Config::get('image_url');
+                $bank['gathering_img'] = Config::get('image_url') . $bank['gathering_img'];
                 break;
             case 3:
                 // 支付宝
                 $bank = UserGathering::get($gathering_id);
-                $bank['gathering_img'] = Config::get('image_url');
+                $bank['gathering_img'] = Config::get('image_url') . $bank['gathering_img'];
                 break;
             default:
                 return $this->response('获取类型错误', 306);

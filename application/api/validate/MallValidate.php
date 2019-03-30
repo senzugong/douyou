@@ -73,7 +73,7 @@ class MallValidate extends Validate
      */
     protected function checkMall($value){
         $userInfo = request()->userInfo;
-        $mall_info = UsdtMall::where("user_id={$userInfo['user_id']} and mall_id=$value and status IN (0,1)")->find();
+        $mall_info = UsdtMall::where("mall_id=$value and status IN (0,1)")->find();
         if(!$mall_info){
             return '该挂单你无法操作';
         }else{
@@ -123,7 +123,7 @@ class MallValidate extends Validate
         {
             return '金额小于最低限制金额!';
         }
-        if($value > $mall_info['mix_rmb'])
+        if($value > $mall_info['max_rmb'])
         {
             return '金额大于限制金额!';
         }

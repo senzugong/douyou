@@ -90,10 +90,10 @@ class Wave extends BasicApi
     public function show_btc(Request $request){
         $userInfo = $request->userInfo;
         $list['btc_result'] = Btc::order('add_time desc')->find();//比特币结果
-
         $list['next_time'] = bcsub($list['btc_result']['add_time']+180,time());
-        $rise = BtcPost::where(['btc_id'=>$list['btc_result']['btc_id']+2,'type'=>1])->count();//涨
-        $fall = BtcPost::where(['btc_id'=>$list['btc_result']['btc_id']+2,'type'=>2])->count(); //跌
+        $rise = BtcPost::where(['status'=>0,'type'=>1])->sum('dw_money');//涨
+
+        $fall = BtcPost::where(['status'=>0,'type'=>2])->sum('dw_money'); //跌
         $best_money = BtcPost::whereTime('add_time','today')
             ->where('status = 1')
             ->field("sum(dw_money) as dw_money,user_id")->group('user_id')->select();
@@ -104,18 +104,24 @@ class Wave extends BasicApi
         $list['best_money']['user_name'] = !isset($best_money[0]) ? '' : Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_name');
         $list['best_money']['user_avatar'] = !isset($best_money[0]) ? '' : Db::table('dw_users')->where(['user_id'=>$best_money[0]['user_id']])->value('user_avatar');
         $list['best_money']['user_avatar'] = $list['best_money']['user_avatar'] ? Config::get('image_url') .$list['best_money']['user_avatar']: '';
-
+        $list['best_money']['best_dw'] =  $list['best_money']['best_dw']? bcmul($list['best_money']['best_dw'],0.8,2):0;
+        $list['best_money']['raword_num'] = $list['best_money']['raword_num']?$list['best_money']['raword_num']:0;
+        $list['best_money']['user_name'] =$list['best_money']['user_name'] ?$list['best_money']['user_name'] :$userInfo['user_name'];
+        if($userInfo['user_avatar']){
+            $list['best_money']['user_avatar'] =  $list['best_money']['user_avatar'] ? $list['best_money']['user_avatar'] : Config::get('image_url'). $userInfo['user_avatar'];
+        }
+        $list['best_money']['user_avatar'] =  $list['best_money']['user_avatar'] ? $list['best_money']['user_avatar'] : '';
        if($rise && $fall){
-           $list['risa'] = bcmul(bcdiv($rise,$rise+$fall,2),100,2) ;
-           $list['fall'] = bcsub(100,$list['risa'],2);
+           $list['risa'] = bcmul(bcdiv($rise,$rise+$fall,2),100) ;
+           $list['fall'] = bcsub(100,$list['risa']);
        }else{
            if(!$rise && $fall){
-               $list['risa'] = 0;
-               $list['fall'] = 100;
+               $list['risa'] = 30;
+               $list['fall'] = 70;
            }
            if($rise && !$fall){
-               $list['risa'] = 100;
-               $list['fall'] = 0;
+               $list['risa'] = 75;
+               $list['fall'] = 25;
            }
            if(!$rise && !$fall){
                $list['risa'] = 50;
@@ -124,7 +130,13 @@ class Wave extends BasicApi
        }
        $list['user_postbtc'] = BtcPost::where(['user_id'=>$userInfo['user_id'],'status'=>0])->find();
        if( $list['user_postbtc']){
-           $list['user_postbtc']['game_time'] = $list['next_time']+180;
+           $add_time = Btc::where(['btc_id'=>$list['user_postbtc']['btc_id']-1])->value('add_time');//比特币结果
+           if($add_time){
+               $list['user_postbtc']['game_time'] = bcsub($add_time+180,time());
+           }else{
+               $list['user_postbtc']['game_time'] = $list['next_time'] +180;
+           }
+
        }
        //今日战绩
         $win = BtcPost::where(['user_id'=>$userInfo['user_id'],'status'=>1])->whereTime('add_time','today')->select();
