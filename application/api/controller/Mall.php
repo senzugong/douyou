@@ -357,18 +357,21 @@ class Mall extends BasicApi
         $order_list = UsdtOrder::alias('a')
             ->join('dw_users b','b.user_id = a.user_id')
             ->join('dw_users c','c.user_id = a.mall_user_id')
+            ->join('dw_usdt_mall d','d.mall_id = a.mall_id')
             ->where($where)
             ->where(function ($query) use ($userInfo) {
                 $query->where(['a.user_id' => $userInfo['user_id']])
                     ->whereOr(['a.mall_user_id'=> $userInfo['user_id']]);
             })
             ->field('b.user_name as order_user_name, b.user_avatar as order_user_avatar,
-             c.user_name as mall_user_name, c.user_avatar as mall_user_avatar, a.*')
+             c.user_name as mall_user_name, c.user_avatar as mall_user_avatar, d.type as mall_type, a.*')
             ->page($page)
             ->select();
         foreach($order_list as &$v){
             $v['order_user_avatar'] = Config::get('image_url').$v['order_user_avatar'];
             $v['mall_user_avatar'] = Config::get('image_url').$v['mall_user_avatar'];
+            $v['usdt_price'] = UsdtMall::where(['mall_id'=>$v['mall_id']])->value('usdt_price');
+            $v['mall_type'] = UsdtMall::where(['mall_id'=>$v['mall_id']])->value('type');
         }
         return $this->response($order_list);
 
@@ -637,7 +640,7 @@ class Mall extends BasicApi
             }
             $detail_order = UsdtOrder::where(['order_id'=>$order_id])->find();
             $detail_order['add_time'] = date('Y-m-d H:i:s',$detail_order['add_time']);
-            $detail_order['usdt_price'] = UsdtMall::where(['mall_id'=>$detail_order->mall_id])->value('usdt_price');
+            $detail_order['usdt_price'] = UsdtMall::where(['mall_id'=>$detail_order['mall_id']])->value('usdt_price');
             return $this->response($detail_order);
 
         }
