@@ -62,7 +62,7 @@ class CommonValidate
             // 记录次数
             if ($payError->pay_error_num >= 5) {
                 // 重置
-                $payError->save(['pay_error_num'=> 0, 'add_time'=>time()]);
+                $payError->save(['pay_error_num'=> 1, 'add_time'=>time()]);
             } else {
                 $payError->save(['pay_error_num'=> $payError->pay_error_num + 1, 'add_time'=>time()]);
             }
