@@ -16,6 +16,7 @@ class UsdtValidate extends Validate
     protected $rule = [
         'wallet_id'=> 'require|checkWallet',
         'usdt_num' => 'require|egt:10',
+        'dw_num' => 'require|egt:10',
         'pay_password'=> 'require|checkPassword',
         'wallet_address'=> 'require',
         'wallet_type_id'=> 'require',
@@ -29,6 +30,8 @@ class UsdtValidate extends Validate
         'wallet_id.require'=> '设为默认钱包地址id不能为空!',
         'usdt_num.require'=> 'usdt数量不能为空!',
         'usdt_num.egt'=> 'usdt数量必须大于等于10!',
+        'dw_num.require'=> 'dw数量不能为空!',
+        'dw_num.egt'=> 'dw数量必须大于等于10!',
         'wallet_address.require'=> '钱包地址不能为空!',
         'wallet_type_id.require'=> '钱包类型不能为空!',
         'coin_num.require'=> '货币数量不能为空!',
@@ -83,6 +86,7 @@ class UsdtValidate extends Validate
         'add_usdt'=> ['usdt_num','wallet_id','coin_num','ratio'],//充值
         'reflect'=> ['usdt_num'=>'require|egt:10|checkNum','wallet_id','coin_num','ratio','pay_password'], //提现
         'ratio_dw'=>['usdt_num','pay_password'],
+        'ratio_usdt'=>['dw_num','pay_password'],
     ];
 
 }

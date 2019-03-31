@@ -67,6 +67,7 @@ class Turntable extends BasicApi
             ->field('u.user_name, a.add_time, b.prize, b.id as prize_id')
             ->limit(10)
             ->page($page)
+            ->order('a.add_time desc')
             ->select();
 
         return $this->response($list);
@@ -159,6 +160,7 @@ class Turntable extends BasicApi
                     'user_id' => $userInfo->user_id,
                     'log_content' => '幸运转盘',
                     'type' => 1,
+                    'log_status'=>3,
                     'chance_money' => 0.5,
                     'dw_money' => $userInfo->dw_money,
                     'add_time' => time(),
@@ -194,6 +196,7 @@ class Turntable extends BasicApi
                         'user_id'=> $userInfo->user_id,
                         'log_content'=> '幸运转盘-蚪金红包',
                         'type'=> 2,
+                        'log_status'=>3,
                         'chance_money'=> $winMoney,
                         'dw_money'=> $userInfo->dw_money,
                         'add_time'=> time(),
@@ -213,6 +216,7 @@ class Turntable extends BasicApi
                         'user_id'=> $userInfo->user_id,
                         'log_content'=> '幸运转盘-蚪金红包',
                         'type'=> 2,
+                        'log_status'=>3,
                         'chance_money'=> $winMoney,
                         'dw_money'=> $userInfo->dw_money,
                         'add_time'=> time(),
@@ -232,6 +236,7 @@ class Turntable extends BasicApi
                         'user_id'=> $userInfo->user_id,
                         'log_content'=> '幸运转盘-蚪金红包',
                         'type'=> 2,
+                        'log_status'=>3,
                         'chance_money'=> $winMoney,
                         'dw_money'=> $userInfo->dw_money,
                         'add_time'=> time(),
@@ -259,6 +264,7 @@ class Turntable extends BasicApi
                         'user_id'=> $userInfo->user_id,
                         'log_content'=> '幸运转盘-蚪金红包',
                         'type'=> 2,
+                        'log_status'=>3,
                         'chance_money'=> $winMoney,
                         'dw_money'=> $userInfo->dw_money,
                         'add_time'=> time(),
@@ -307,6 +313,7 @@ class Turntable extends BasicApi
         $list = $request->userInfo
             ->turntableLog()
             ->page($page)
+            ->order('add_time desc')
             ->select();
         foreach($list as &$v){
          $v['game_raword']  = TurntableSet::where(['id'=>$v['turntable_id']])->find();

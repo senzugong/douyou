@@ -129,6 +129,7 @@ class Worker {
                                         'user_id'=> $user->user_id,
                                         'log_content'=> '号码竞猜',
                                         'type'=> 2,
+                                        'log_status'=>4,
                                         'chance_money'=> $value->win_money,
                                         'dw_money'=> $user->dw_money,
                                         'add_time'=> time(),
@@ -159,6 +160,7 @@ class Worker {
                                         'user_id'=> $user->user_id,
                                         'log_content'=> '号码竞猜',
                                         'type'=> 2,
+                                        'log_status'=>4,
                                         'chance_money'=> $value->win_money,
                                         'dw_money'=> $user->dw_money,
                                         'add_time'=> time(),
@@ -234,7 +236,7 @@ class Worker {
                 //随机的涨幅度
                 $change_number = rand(10001, 10010);
                 if ($result['is_rise'] == 1) {//开启了涨的风控
-                    $rise_price = bcdiv($change_number, 10000, 4);
+                    $rise_price = bcmul(bcdiv($change_number, 10000, 4),100,2);
                     $data = [
                         'btc_price' => bcmul($btc_id['btc_price'], $rise_price, 4),
                         'change' => '+' . bcsub($change_number, 1, 4),
@@ -250,6 +252,7 @@ class Worker {
                                 'user_id' => $v['user_id'],
                                 'log_content' => '猜涨跌',
                                 'type' => 2,
+                                'log_status'=>5,
                                 'chance_money' => bcmul($btc_post['dw_money'], $min['odds'], 2),
                                 'dw_money' => bcadd($dw_money, $btc_post['dw_money'], 2),
                                 'add_time' => time(),
@@ -263,7 +266,7 @@ class Worker {
                     $rise_price = bcdiv($change_number, 10000, 4);
                     $data = [
                         'btc_price' => bcsub(bcmul($btc_id['btc_price'], $rise_price, 4), $btc_id['btc_price'], 4),
-                        'change' => '-' . bcsub($change_number, 1, 4),
+                        'change' => '-' . bcmul(bcsub($change_number, 1, 4),100,2),
                         'dispaly_name' => 'okex交易所',
                         'add_time' => time()
                     ];
@@ -276,6 +279,7 @@ class Worker {
                                 'user_id' => $v['user_id'],
                                 'log_content' => '猜涨跌',
                                 'type' => 2,
+                                'log_status'=>5,
                                 'chance_money' => bcmul($btc_post['dw_money'], $min['odds'], 2),
                                 'dw_money' => bcadd($dw_money, $btc_post['dw_money'], 2),
                                 'add_time' => time(),
@@ -294,7 +298,7 @@ class Worker {
                     if ($change == 0) {
                         $data = [
                             'btc_price' => $result['btc_price'],
-                            'change' => 0,
+                            'change' => 0.00,
                             'dispaly_name' => 'okex交易所',
                             'add_time' => time()
                         ];
@@ -306,6 +310,7 @@ class Worker {
                                 'user_id' => $v['user_id'],
                                 'log_content' => '猜涨跌',
                                 'type' => 2,
+                                'log_status'=>5,
                                 'chance_money' => $v['dw_money'],
                                 'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
                                 'add_time' => time(),
@@ -313,7 +318,7 @@ class Worker {
                             BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
                         }
                     } elseif ($change > 0) {
-                        $change = '+' . bcdiv($change, $btc_id['btc_price'], 4);
+                        $change = '+' .  bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
                         $data = [
                             'btc_price' => $coin_price,
                             'change' => $change,
@@ -329,6 +334,7 @@ class Worker {
                                     'user_id' => $v['user_id'],
                                     'log_content' => '猜涨跌',
                                     'type' => 2,
+                                    'log_status'=>5,
                                     'chance_money' => bcmul($v['dw_money'], $min['odds'], 2),
                                     'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
                                     'add_time' => time(),
@@ -339,7 +345,7 @@ class Worker {
                             }
                         }
                     } else {
-                        $change = bcdiv($change, $btc_id['btc_price'], 4);
+                        $change = bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
                         $data = [
                             'btc_price' => $coin_price,
                             'change' => $change,
@@ -355,6 +361,7 @@ class Worker {
                                     'user_id' => $v['user_id'],
                                     'log_content' => '猜涨跌',
                                     'type' => 2,
+                                    'log_status'=>5,
                                     'chance_money' => bcmul($v['dw_money'], $min['odds'], 2),
                                     'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
                                     'add_time' => time(),

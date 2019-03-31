@@ -12,6 +12,7 @@ use app\api\validate\WalletValidate;
 use app\common\model\ChangeLog;
 use app\common\model\MoneyLog;
 use controller\BasicApi;
+use think\Db;
 use think\Request;
 
 class Bill extends BasicApi
@@ -26,24 +27,39 @@ class Bill extends BasicApi
         $userInfo = $request->userInfo;
         $page = $request->param('page', 1);
         $start_time = $request->param('start_time',date('Y-m-1'));
-        $end_time = $request->param('end_time',time());
+        $end_time = date('Y-m', strtotime("$start_time+1month"));
+        //$end_time = strtotime($start_time)*24*3600*30 ;
             // 获取用户账单记录
         $data['list'] = $userInfo->userMoneyLog()
             ->whereTime('add_time', 'between',[$start_time,$end_time])
             ->page($page)
             ->order('add_time desc')
             ->select();
+        $data['all_count'] = $userInfo->userMoneyLog()
+            ->whereTime('add_time', 'between',[$start_time,$end_time])
+            ->count();
         if ($page == 1) {
             //支出
-            $data['expenditure'] = $userInfo->userMoneyLog()
+            $start_time = strtotime($start_time);
+            $end_time = strtotime($end_time);
+            $expenditure =$userInfo->userMoneyLog()
                 ->whereTime('add_time', 'between',[$start_time,$end_time])
-                ->where("type = 1")
-                ->sum('chance_money');
-            //
-            $data['income'] = $userInfo->userMoneyLog()
+                ->where("type=1")
+                ->select();
+            $all_expenditure = 0.00;
+            foreach($expenditure as &$v){
+                $all_expenditure +=bcadd($all_expenditure,$v['chance_money'],2) ;
+            };
+            $data['expenditure'] = $all_expenditure;
+            $add_income = 0.00;
+            $income = $userInfo->userMoneyLog()
                 ->whereTime('add_time', 'between',[$start_time,$end_time])
                 ->where("type = 2")
-                ->sum('chance_money');
+                ->select();
+            foreach($income as &$v){
+                $add_income +=bcadd($add_income ,$v['chance_money'],2) ;
+            };
+            $data['income'] = $add_income;
         }
         foreach($data['list'] as $v){
             $v['add_time'] = date('m月d日 H:i', $v['add_time']);
@@ -67,6 +83,7 @@ class Bill extends BasicApi
         {
            $data['change_log'] = ChangeLog::where(['log_id'=>$data['bill_info']['changelog_id']])->find();
             $data['change_log']['add_time'] = $this->getTime($data['change_log']['add_time']);
+            $data['change_log']['service_charge'] = bcmul($data['change_log']['dw_money'],0.05,2);
         }
         $data['bill_info']['add_time'] = $this->getTime($data['bill_info']['add_time']);
         return $this->response($data);

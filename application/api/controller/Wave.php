@@ -181,8 +181,15 @@ class Wave extends BasicApi
         $userInfo = $request->userInfo;
         $list = BtcPost::where(['user_id'=> $userInfo->user_id])
             ->page($page)
+            ->order('add_time desc')
             ->select();
-
+        foreach($list as &$v){
+            if($v['status']==1){
+                 $v['win_dw']   = bcmul($v['dw_money'],0.8,2);
+            }
+            $v['add_time'] = date('Y-m-d H:i:s',$v['add_time']);
+        }
+        $list = empty($list) ? [] : $list;
         return $this->response($list);
     }
 
@@ -214,13 +221,13 @@ class Wave extends BasicApi
         // 今日收益
         $money = 0;
         foreach ($btcPost as $v) {
-            $money = bcadd($money, bcmul($v['dw_money'], $btcBasic['odds'], 4), 4);
+            $money = bcadd($money, bcmul($v['dw_money'], $btcBasic['odds'], 2), 2);
         }
         foreach ($turntableLog as $v) {
-            $money = bcadd($money, $v['prize_money'], 4);
+            $money = bcadd($money, $v['prize_money'], 2);
         }
         foreach ($gamePostdata as $v) {
-            $money = bcadd($money, $v['win_money'], 4);
+            $money = bcadd($money, $v['win_money'], 2);
         }
 
         return $this->response(['profit'=> $money]);
