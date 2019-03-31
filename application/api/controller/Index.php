@@ -134,7 +134,7 @@ class Index extends BasicApi
      */
     public function index(Request $request){
         $userInfo = $request->userInfo;
-        $list['user_create'] =bcdiv(time()-$userInfo['add_time'],3600*24);
+        $list['user_create'] =ceil((time()-$userInfo['add_time'])/(3600*24));
         //btc开奖结果
        $list['btc_result'] =Btc::order('btc_id desc')->find();
        $list['result_time'] = ($list['btc_result']['add_time']+200) -time();
@@ -147,11 +147,11 @@ class Index extends BasicApi
        }else{
            $fall = $count-$rise_num;
            if($rise_num == 0 ){
-               $list['rise'] = 0;
-               $list['fall'] =100;
+               $list['rise'] = 30;
+               $list['fall'] =70;
            }elseif($fall == 0){
-               $list['rise'] = 100;
-               $list['fall'] = 0;
+               $list['rise'] = 25;
+               $list['fall'] = 75;
            }
            $list['rise'] = bcmul(bcdiv($rise_num,$count,2),100,2);
            $list['fall'] = bcsub(100,$list['rise'],2);

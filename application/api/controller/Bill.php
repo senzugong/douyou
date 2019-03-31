@@ -48,7 +48,7 @@ class Bill extends BasicApi
                 ->select();
             $all_expenditure = 0.00;
             foreach($expenditure as &$v){
-                $all_expenditure +=bcadd($all_expenditure,$v['chance_money'],2) ;
+                $all_expenditure = bcadd($all_expenditure,$v['chance_money'],2) ;
             };
             $data['expenditure'] = $all_expenditure;
             $add_income = 0.00;
@@ -57,7 +57,7 @@ class Bill extends BasicApi
                 ->where("type = 2")
                 ->select();
             foreach($income as &$v){
-                $add_income +=bcadd($add_income ,$v['chance_money'],2) ;
+                $add_income = bcadd($add_income ,$v['chance_money'],2) ;
             };
             $data['income'] = $add_income;
         }

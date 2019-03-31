@@ -100,12 +100,13 @@ class Mall extends BasicApi
             $usdtOrder = UsdtOrder::create([
                 'order_sn' => $order_sn,
                 'mall_id' => $mall_id,
-                'mall_user_id' => $usdtMall->user_id,
+                'mall_user_id' => $usdtMall['user_id'],
                 'user_id' => $userInfo->user_id,
                 'order_money' => $money,
                 'order_usdt_num' => $usdtNum,
                 'gathering_id' => $request->post('gathering_id'),
                 'pay_type' => $request->post('pay_type'),
+                'add_time'=>time()
             ]);
             // 提交
             Db::commit();
@@ -328,6 +329,7 @@ class Mall extends BasicApi
         $list['usdtMall'] = $userInfo->usdtMall()
             ->where($status)
             ->page($page)
+            ->order('add_time desc')
             ->select();
         $list['count']  = $userInfo->usdtMall()
             ->where($status)->count();
@@ -348,7 +350,7 @@ class Mall extends BasicApi
         $page  = $request->post('page',1);//分页
         $where = [];
         if($type == 1){
-            $where = "a.status IN (1,2)";
+            $where = "a.status IN (0,1)";
         }elseif($type == 2){
             $where = "a.status = 3";
         }elseif($type ==3){
@@ -366,12 +368,30 @@ class Mall extends BasicApi
             ->field('b.user_name as order_user_name, b.user_avatar as order_user_avatar,
              c.user_name as mall_user_name, c.user_avatar as mall_user_avatar, d.type as mall_type, a.*')
             ->page($page)
+            ->order('a.add_time desc')
             ->select();
         foreach($order_list as &$v){
             $v['order_user_avatar'] = Config::get('image_url').$v['order_user_avatar'];
             $v['mall_user_avatar'] = Config::get('image_url').$v['mall_user_avatar'];
-            $v['usdt_price'] = UsdtMall::where(['mall_id'=>$v['mall_id']])->value('usdt_price');
-            $v['mall_type'] = UsdtMall::where(['mall_id'=>$v['mall_id']])->value('type');
+            $user_mall = UsdtMall::where(['mall_id'=>$v['mall_id']])->find();
+            $v['usdt_price'] = $user_mall['usdt_price'];
+            if($user_mall['type'] ==1){
+                if($v['mall_user_id'] == $userInfo['user_id']){
+                    $v['mall_type'] = 1;
+                }else{
+                    $v['mall_type'] = 2;
+                }
+            }
+            if($user_mall['type'] ==2){
+                if($v['mall_user_id'] == $userInfo['user_id']){
+                    $v['mall_type'] = 2;
+                }else{
+                    $v['mall_type'] = 1;
+                }
+            }
+
+
+
         }
         return $this->response($order_list);
 
@@ -644,6 +664,34 @@ class Mall extends BasicApi
             return $this->response($detail_order);
 
         }
+    /**
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function detail_require(Request $request){
+        $order_id =$request->post('order_id');
+        if(!$order_id){
+            return $this->response('订单id不能为空!',304);
+        }
+        $userInfo = $request->userInfo;
+        $list['detail_order'] = UsdtOrder::where(['order_id'=>$order_id])->find();
+        $list['detail_order'] ['add_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['add_time']);
+        $list['mall_info'] = UsdtMall::where(['mall_id'=>$list['detail_order']['mall_id']])->find();
+        if($list['detail_order']['pay_type'] =1){
+            $list ['pay_info'] =UserBank::where(['bank_id'=> $list['detail_order']['gathering_id']])->find();
+        }else{
+            $list ['pay_info'] =UserGathering::where(['gathering_id'=>$list['detail_order']['gathering_id']])->find();
+        }
+            $list['user_info'] = User::where(['user_id'=>$list['detail_order']['user_id']])->field('user_name,user_avatar')->find();
+            $list['user_info']['user_avatar'] = $list['user_info']['user_avatar']  ?Config::get('image_url').$list['user_info']['user_avatar'] :'';
+            $list['user_info']['type']=$list['mall_info']['type'];
+
+        return $this->response($list);
+
+    }
     /**默认支付方式
      * @param Request $request
      * @throws \think\db\exception\DataNotFoundException

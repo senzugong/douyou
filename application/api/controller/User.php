@@ -48,15 +48,15 @@ class User extends BasicApi
         $rise = MoneyLog::where(['type'=>2,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
         $all_expenditure = 0.00;
         foreach($rise as &$v){
-            $all_expenditure +=bcadd($all_expenditure,$v['chance_money'],2) ;
+            $all_expenditure = bcadd($all_expenditure,$v['chance_money'],2) ;
         };
         //支出
         $fill = MoneyLog::where(['type'=>1,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
         $all_fill = 0.00;
         foreach($fill as &$v){
-            $all_fill +=bcadd($all_fill,$v['chance_money'],2) ;
+            $all_fill = bcadd($all_fill,$v['chance_money'],2) ;
         };
-            $userInfo['today_money'] = bcsub($all_expenditure,$all_fill,2);
+        $userInfo['today_money'] = bcsub($all_expenditure,$all_fill,2);
         return $this->response($userInfo);
     }
 

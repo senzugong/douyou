@@ -174,7 +174,7 @@ class Usdt extends BasicApi
         $dw_money = bcadd($userInfo['dw_money'],$dw_usdt1,2); //剩余蚪金数量
         $data = [ //usdt的记录
             'user_id'=>$userInfo['user_id'],
-            'log_content' =>'udst兑换蚪金',
+            'log_content' =>'usdt兑换蚪金',
             'type'=>1, //支出
             'chance_usdt'=>$usdt_num,
             'dw_usdt'=>$dw_usdt,
@@ -183,10 +183,10 @@ class Usdt extends BasicApi
         ];
         $data2 = [//蚪金的记录
             'user_id'=>$userInfo['user_id'],
-            'log_content' =>'udst兑换蚪金',
+            'log_content' =>'usdt兑换蚪金',
             'type'=>2,//收入
             'log_status'=>6,
-            'chance_money'=>$dw_num,
+            'chance_money'=>$dw_usdt1,
             'dw_money'=>$dw_money,
             'add_time' =>time()
 
