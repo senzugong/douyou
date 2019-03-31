@@ -81,8 +81,8 @@ class UsdtTrade extends BasicAdmin
                     UsdtLog::create([
                         'user_id'=> $user->user_id,
                         'log_content'=> 'USDT充值',
-                        'changelog_id'=> $logId,
-                        'charge_type'=> 2, // 1 其他  2是充值提现
+                        'usdt_charge_id'=> $logId,
+                        'usdt_charge_type'=> 2, // 1 其他  2是充值提现
                         'type'=> 2,
                         'chance_usdt'=> $changeLog->usdt_num,
                         'dw_usdt'=> $user->dw_usdt,
