@@ -38,7 +38,7 @@ class Bill extends BasicApi
         $data['all_count'] = $userInfo->userMoneyLog()
             ->whereTime('add_time', 'between',[$start_time,$end_time])
             ->count();
-        if ($page == 1) {
+
             //支出
             $start_time = strtotime($start_time);
             $end_time = strtotime($end_time);
@@ -60,7 +60,6 @@ class Bill extends BasicApi
                 $add_income = bcadd($add_income ,$v['chance_money'],2) ;
             };
             $data['income'] = $add_income;
-        }
         foreach($data['list'] as $v){
             $v['add_time'] = date('m月d日 H:i', $v['add_time']);
         }

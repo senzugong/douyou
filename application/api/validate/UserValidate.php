@@ -16,7 +16,7 @@ class UserValidate extends Validate
         ['password','require|checkPassword'],
         ['user_phone','require'], // 手机验证码
         ['sms_code','require'], // 手机验证码
-        ['pay_password','require|checkPay'],
+        ['pay_password','require|checkPayNum'],
         ['step','require|between:1,2'], // 修改支付密码步骤数
         ['new_paypwd','requireIf:step,2|different:pay_password'],
         'images'=> 'require|array|length:3', // 数组的长度用length验证
@@ -54,21 +54,6 @@ class UserValidate extends Validate
             return '请填写不一样的用户名!';
         }
         return true;
-    }
-    /**
-     * 验证支付密码
-     * @param $value
-     * @return bool|string
-     */
-    protected function checkPay($value)
-    {
-        $userInfo = request()->userInfo;
-        if($userInfo['pay_password']){
-            return CommonValidate::validate('payPassword', $value);
-        }else{
-            return true;
-        }
-
     }
 
     /**
@@ -178,7 +163,6 @@ class UserValidate extends Validate
         'password'  =>  ['user_phone', 'sms_code', 'password'],
         'pay_password'  =>  ['step', 'pay_password', 'new_paypwd'],
         'retrieve_pay'  =>  ['user_phone', 'sms_code', 'pay_password'=>'require'],
-        'pay_check'  =>  ['pay_password'=> 'require|checkPayNum',],
         'examine' =>['images'],
     ];
 

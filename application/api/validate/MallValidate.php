@@ -19,7 +19,7 @@ class MallValidate extends Validate
         'money'=> 'require|checkMoney',
         'pay_type'=> 'require|between:1,3',
         'gathering_id'=> 'require',
-        'usdt_num'=>'require|egt:15|checkUsdtnum',
+        'usdt_num'=>'require|egt:1|checkUsdtnum',
         'type'=> 'require|between:1,2',
         'usdt_price'=>'require|gt:0',
         'mix_rmb'=>'require|gt:0',
@@ -35,7 +35,7 @@ class MallValidate extends Validate
         'pay_type'=> '支付方式错误',
         'gathering_id'=> '付款ID不能为空',
         'usdt_num.require'=> 'usdt数量不能为空',
-        'usdt_num.gt'=> 'usdt数量必须大于等于15个',
+        'usdt_num.gt'=> 'usdt数量必须大于等于1个',
         'usdt_price'=> 'usdt价格不能缺',
         'mix_rmb'=> '最小交易金额必填',
         'type'=> '类型不能为空!',
@@ -48,7 +48,7 @@ class MallValidate extends Validate
         'shopping'=> ['mall_id', 'money'],
         'confirm_pay'=> ['order_id'],
         'allocate'=> ['order_id'],
-        'sell'=> ['type', 'mix_rmb','usdt_price','usdt_num'], // 我要发布（我要出售）
+        'sell'=> ['type','usdt_price','usdt_num'], // 我要发布（我要出售）
         'mall'=>['mall_id'], // 取消发布
         'again_mall'=>['mall_id'=> 'require|checkAgainMall'], // 重新发布
         'cancel_order'=> ['order_id'=> 'require|checkStatus:cancel'], // 取消订单

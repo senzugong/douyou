@@ -66,8 +66,8 @@ class Usdt extends BasicApi
         $userInfo = $request->userInfo;
         $wallet_id = $request->post('wallet_id');//钱包地址
         $usdt_num = $request->post('usdt_num'); //usdt数量
-        $coin_num = bcmul($request->post('coin_num'),0.05,4); //货币数量(体现扣取5%的手续费)
-        $ratio = $request->post('ratio'); //兑换比例
+        $coin_num1 = bcadd($usdt_num,bcmul($usdt_num,0.05,4),4); //货币数量(体现扣取5%的手续费)
+        $ratio = 1; //兑换比例
         $user_wallet = UserWallet::where(['wallet_id'=>$wallet_id])->find();
         $coin = WalletType::where(['id'=>$user_wallet['wallet_type_id']])->find();
         $data = [
@@ -76,7 +76,7 @@ class Usdt extends BasicApi
             'type'=>2,//体现
             'usdt_num'=>$usdt_num,
             'coin'=>$coin['wallet_name'],
-            'coin_num'=>$coin_num,
+            'coin_num'=>$usdt_num,
             'coin_address'=>$coin['coin_address'],
             'ratio'=>$ratio,
             'status'=>0,
@@ -86,7 +86,7 @@ class Usdt extends BasicApi
         try {
             UsdtChangelog::create($data);
             $data ['add_time'] =$this->getTime(time());
-            $change_dw =bcsub($userInfo['dw_usdt'],$usdt_num,2);
+            $change_dw =bcsub($userInfo['dw_usdt'],$coin_num1,2);
             $userInfo->save(['dw_usdt'=>$change_dw]);
             Db::commit();
             // 成功返回数据

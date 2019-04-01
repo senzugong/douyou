@@ -69,9 +69,16 @@ class Mall extends BasicApi
         $mall_id = $request->post('mall_id');
         $money = $request->post('money');
         $userInfo = $request->userInfo;
+        if($userInfo['is_examine'] !=1){
+            return $this->response('未完成高级认证!', 304);
+        }
         // 发布单
         $usdtMall = UsdtMall::get($mall_id);
         $usdtNum = bcdiv($money,$usdtMall['usdt_price'],2);
+        if($usdtNum > bcsub($usdtMall['usdt_num'],$usdtMall['over_usdt'],2))
+        {
+            return $this->response('剩余usdt库存不足!', 304);
+        }
         // 订单号
         $order_sn = sha1($userInfo->user_id . $mall_id . $money . microtime());
         Db::startTrans();
@@ -248,18 +255,29 @@ class Mall extends BasicApi
             return  $this->response( $mallValidate->getError() ,304);
         }
         $userInfo = $request->userInfo;
+        if($userInfo['is_examine'] !=1){
+            return $this->response('未完成高级认证!', 304);
+        }
         $type  = $request->post('type');
         $count = UsdtMall::where("'user_id'={$userInfo['user_id']}  and type =$type and status !=3")->count();
         if($count >=2 ){
             return $this->response('当前只能发布两条数据', 304);
         }
+
         $usdt_num = $request->post('usdt_num');
         $type  = $request->post('type');
-        $usdt_price = $request->post('usdt_price'); //usdt单价
-        $mix_rmb = $request->post('mix_rmb'); //最小的交易金额
-        if($mix_rmb < 10){
-            return $this->response('最小交易额不能低于10!', 304);
+        if($type==1){
+            if($usdt_num <1){
+                return $this->response('出售usdt数量最低为1', 304);
+            }
+            $usdt_price = $request->post('usdt_price',6.50); //usdt单价
+        }else{
+            if($usdt_num <500){
+                return $this->response('收购usdt数量最低为500', 304);
+            }
+            $usdt_price = $request->post('usdt_price',6.70); //usdt单价
         }
+        $mix_rmb = $request->post('mix_rmb',$usdt_price); //最小的交易金额
         $max_rmb = $request->post('max_rmb',bcmul($usdt_num,$usdt_price,4)); //最大的交易金额
         if($mix_rmb >= $max_rmb){
             return $this->response('最大交易额小于等于最小交易额!', 304);
@@ -688,6 +706,7 @@ class Mall extends BasicApi
         }
         $userInfo = $request->userInfo;
         $list['detail_order'] = UsdtOrder::where(['order_id'=>$order_id])->find();
+        $list['detail_order']['cancel_time'] = ($list['detail_order']['add_time'] +900)-time();
         $list['detail_order'] ['add_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['add_time']);
         $list['mall_info'] = UsdtMall::where(['mall_id'=>$list['detail_order']['mall_id']])->find();
         if($list['detail_order']['pay_type'] ==1){

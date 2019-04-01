@@ -315,19 +315,6 @@ class User extends BasicApi
     }
 
     /**
-     * 且验证支付密码，用户页面跳转验证
-     * @param Request $request
-     * @param UserValidate $userValidate
-     * @return \think\Response
-     */
-    public function check_pay(Request $request, UserValidate $userValidate) {
-        // 验证
-        if (!$userValidate->scene('pay_check')->check($request->post())) {
-            return $this->response($userValidate->getError(), 304);
-        }
-        return $this->response();
-    }
-    /**
      * 退出登录
      * @param Request $request
      * @return \think\Response
