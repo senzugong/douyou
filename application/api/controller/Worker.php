@@ -291,9 +291,9 @@ class Worker {
                     }
                 }
             } else {//自动获取开奖接口
-                    $url = "https://data.block.cc/api/v1/price?symbol_name=bitcoin";
+                    $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
                     $data = Curl::get($url);
-                    $coin_price = $data["data"][0]['price_usd'];//当前的比特币的价格
+                    $coin_price = $data["ticker"]['buy'];//当前的比特币的价格
                     $change = bcsub($coin_price, $btc_id['btc_price'], 4); //幅度
                     if ($change == 0) {
                         $data = [

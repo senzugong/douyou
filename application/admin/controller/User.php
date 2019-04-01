@@ -92,8 +92,34 @@ class User extends BasicAdmin
         $sex[1]['name'] = "男";
         $sex[1]['value'] = isset($sex_list[1]) ? $sex_list[1]['num'] : 0;
         //会员男女统计比例结束
-
+        //上期比特币开奖
         return json(['user'=>$data,'sex'=>$sex,'article'=>$artice_data]);
+    }
+
+    /**
+     * btc 开奖结果
+     */
+    public function btc_game(){
+        //最新的开奖结果
+        $btc_result = Db::table('dw_btc')->order('add_time desc')->find();
+        //买涨的人数
+        $btc['rise_count'] = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->count();
+        //买跌的人数
+        $btc['fall_count'] = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->count();
+        //买的钱
+        $rise = '0.00';
+        $fall = '0.00';
+        $btc = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->select();
+        foreach($btc as &$v){
+            $rise = bcadd($rise,$v['dw_money'],2);
+        }
+        $btc1 = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->select();
+        //买跌的人数
+        foreach($btc1 as &$v){
+            $fall = bcadd($fall,$v['dw_money'],2);
+        }
+        $btc['rise'] = $rise; $btc['fall'] = $fall;
+        return json(['btc_result'=>$btc_result,'btc'=>$btc]);
     }
     /**
      * 用户列表

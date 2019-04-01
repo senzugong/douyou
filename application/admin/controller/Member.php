@@ -71,6 +71,7 @@ class Member extends BasicAdmin
                     'a.is_examine'=> $this->request->post('status') == 1 ? 1 : 3,
                 ]);
             if ($result !== false) {
+                Db::table('dw_users')->where(['user_id'=> $this->request->post('user_id')])->setInc('complete_rate',10);
                 $this->success('审核成功', 'member/index');
             } else {
                 $this->error('数据保存失败, 请稍候再试!');

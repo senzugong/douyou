@@ -30,7 +30,7 @@ class User extends BasicApi
         $userInfo = $request->userInfo;
         // 详情
         $userInfo['user_avatar'] = $userInfo['user_avatar'] ? Config::get('image_url') . $userInfo['user_avatar'] : '';
-        $userInfo['order_num'] = UsdtOrder::where("(mall_user_id = {$userInfo['user_id']} or user_id = {$userInfo['user_id']}) and status IN (1,2)")->count();
+        $userInfo['order_num'] = UsdtOrder::where("(mall_user_id = {$userInfo['user_id']} or user_id = {$userInfo['user_id']}) and status IN (0,1)")->count();
         if(strlen($userInfo['card_num']) ==15){
             $userInfo['card_num'] = substr_replace($userInfo['card_num'], '****', 4, 7);
         }elseif(strlen($userInfo['card_num']) ==18){

@@ -87,12 +87,40 @@
 
             <section class="panel">
                 <div class="panel-heading">
-                    最近七天文章统计
+                    {$btc_result.btc_id}期开奖结果 btc价格: {$btc_result.btc_price}  |  涨幅 : {$btc_result.change}%
                     <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
                 </div>
-                <div class="panel-body">
-                    <div class="echarts" id="article"></div>
+                <div class="panel-body" style="height:324px;">
+                    <!--<div class="echarts" id="article"></div>-->
+
+                    <div class="row" style="font-size:28px;text-align: center;">
+                        <div class="col-md-3">下注类型</div>
+                        <div class="col-md-3">下注人数</div>
+                        <div class="col-md-3">下注金额</div>
+                        <div class="col-md-3">操作</div>
+                    </div>
+                    <div class="row" style="font-size:18px;text-align: center;padding:15px 0">
+                        <div class="col-md-3">涨</div>
+                        <div class="col-md-3">{$btc.rise_count} </div>
+                        <div class="col-md-3">{$btc.rise}</div>
+                        <div class="col-md-3">
+                            <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("admin/Index/setstatus")}","action":"setstatus","data":"status=1","method":"post","confirm":"true"}'>
+                                <i class="iconfont">&#xe653;</i>开涨
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row" style="font-size:18px;text-align: center;">
+                        <div class="col-md-3">跌</div>
+                        <div class="col-md-3">{$btc.fall_count}</div>
+                        <div class="col-md-3">{$btc.fall}</div>
+                        <div class="col-md-3">
+                            <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("admin/Index/setstatus")}","action":"setstatus","data":"status=2","method":"post","confirm":"true"}'>
+                                <i class="iconfont">&#xe653;</i>开跌
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
             </section>
         </div>
 

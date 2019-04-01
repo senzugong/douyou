@@ -210,18 +210,18 @@ class Login extends BasicApi
         {
             return  $this->response( '参数不全!' ,304);
         }
-        $app_model = Db::table('dw_app_model')->where(['type'=>$type])->value('app_model');
-        if(!$app_model){
+        $reuslt1 = Db::table('dw_app_model')->where(['type'=>$type])->value('app_model');
+        if(!$reuslt1){
             return  $this->response( '未发布新版本!' ,304);
         }
-        if($app_model == $app_model)
+        if($app_model == $reuslt1)
         {
             return  $this->response( '您已经是最新的版本了!' ,304);
 
         }else{
-            return  $this->response();
+            $reuslt = Db::table('dw_app_model')->where(['type'=>$type])->find();
+            return  $this->response($reuslt);
         }
 
     }
-
 }

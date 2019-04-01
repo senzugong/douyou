@@ -137,24 +137,29 @@ class Index extends BasicApi
         $list['user_create'] =ceil((time()-$userInfo['add_time'])/(3600*24));
         //btc开奖结果
        $list['btc_result'] =Btc::order('btc_id desc')->find();
-       $list['result_time'] = ($list['btc_result']['add_time']+200) -time();
+       $list['result_time'] = bcsub(bcadd($list['btc_result']['add_time'],200),time());
        //买涨的人数
        $count = BtcPost::whereTime('add_time', 'today')->count();
-       $rise_num = BtcPost::whereTime('add_time', 'today')->where("type=1")->count();
-       if($count==0 ){
-           $list['rise'] =50;
-           $list['fall'] = 50;
-       }else{
-           $fall = $count-$rise_num;
-           if($rise_num == 0 ){
-               $list['rise'] = 30;
-               $list['fall'] =70;
-           }elseif($fall == 0){
-               $list['rise'] = 25;
-               $list['fall'] = 75;
-           }
-           $list['rise'] = bcmul(bcdiv($rise_num,$count,2),100,2);
-           $list['fall'] = bcsub(100,$list['rise'],2);
+        $list['btc_result']['count_num'] = $count;
+//        $rise_num = BtcPost::whereTime('add_time', 'today')->where("type=1")->count();
+        $rise = BtcPost::where(['status'=>0,'type'=>1])->sum('dw_money');//涨
+        $fall = BtcPost::where(['status'=>0,'type'=>2])->sum('dw_money'); //跌
+        if($rise && $fall){
+            $list['rise'] = bcmul(bcdiv($rise,$rise+$fall,2),100) ;
+            $list['fall'] = bcsub(100,$list['risa']);
+        }else{
+            if(!$rise && $fall){
+                $list['rise'] = 30;
+                $list['fall'] = 70;
+            }
+            if($rise && !$fall){
+                $list['rise'] = 75;
+                $list['fall'] = 25;
+            }
+            if(!$rise && !$fall){
+                $list['rise'] = 50;
+                $list['fall'] = 50;
+            }
        }
 
        //时时彩开奖结果

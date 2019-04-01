@@ -257,7 +257,17 @@ class Mall extends BasicApi
         $type  = $request->post('type');
         $usdt_price = $request->post('usdt_price'); //usdt单价
         $mix_rmb = $request->post('mix_rmb'); //最小的交易金额
+        if($mix_rmb < 10){
+            return $this->response('最小交易额不能低于10!', 304);
+        }
         $max_rmb = $request->post('max_rmb',bcmul($usdt_num,$usdt_price,4)); //最大的交易金额
+        if($mix_rmb >= $max_rmb){
+            return $this->response('最大交易额小于等于最小交易额!', 304);
+        }
+        if($max_rmb > bcmul($usdt_num,$usdt_price,4)){
+            return $this->response('超过了最大限额!', 304);
+        }
+
         $wx_gathering = $request->post('wx_gathering',''); //微信id
         $bank_gathering = $request->post('bank_gathering',''); //银行id
         $zfb_gathering = $request->post('zfb_gathering',''); //支付宝id
@@ -376,14 +386,14 @@ class Mall extends BasicApi
             $user_mall = UsdtMall::where(['mall_id'=>$v['mall_id']])->find();
             $v['usdt_price'] = $user_mall['usdt_price'];
             if($user_mall['type'] ==1){
-                if($v['mall_user_id'] == $userInfo['user_id']){
+                if($userInfo['user_id'] == $user_mall['user_id']){
                     $v['mall_type'] = 1;
                 }else{
                     $v['mall_type'] = 2;
                 }
             }
             if($user_mall['type'] ==2){
-                if($v['mall_user_id'] == $userInfo['user_id']){
+                if($userInfo['user_id'] == $user_mall['user_id']){
                     $v['mall_type'] = 2;
                 }else{
                     $v['mall_type'] = 1;
@@ -680,15 +690,35 @@ class Mall extends BasicApi
         $list['detail_order'] = UsdtOrder::where(['order_id'=>$order_id])->find();
         $list['detail_order'] ['add_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['add_time']);
         $list['mall_info'] = UsdtMall::where(['mall_id'=>$list['detail_order']['mall_id']])->find();
-        if($list['detail_order']['pay_type'] =1){
+        if($list['detail_order']['pay_type'] ==1){
+
             $list ['pay_info'] =UserBank::where(['bank_id'=> $list['detail_order']['gathering_id']])->find();
         }else{
             $list ['pay_info'] =UserGathering::where(['gathering_id'=>$list['detail_order']['gathering_id']])->find();
+            $list['pay_info']['gathering_img'] = $list['pay_info']['gathering_img']  ?Config::get('image_url').$list['pay_info']['gathering_img'] :'';
         }
+
+        if($userInfo['user_id'] == $list['detail_order']['mall_user_id']){
             $list['user_info'] = User::where(['user_id'=>$list['detail_order']['user_id']])->field('user_name,user_avatar')->find();
             $list['user_info']['user_avatar'] = $list['user_info']['user_avatar']  ?Config::get('image_url').$list['user_info']['user_avatar'] :'';
-            $list['user_info']['type']=$list['mall_info']['type'];
-
+        }else{
+            $list['user_info'] = User::where(['user_id'=>$list['detail_order']['mall_user_id']])->field('user_name,user_avatar')->find();
+            $list['user_info']['user_avatar'] = $list['user_info']['user_avatar']  ?Config::get('image_url').$list['user_info']['user_avatar'] :'';
+        }
+        if($list['mall_info']['type'] ==1){
+            if($userInfo['user_id'] ==$list['mall_info']['user_id']){
+                $list['user_info']['type'] = 1;
+            }else{
+                $list['user_info']['type'] = 2;
+            }
+        }
+        if($list['mall_info'] ['type'] ==2){
+            if($userInfo['user_id'] ==$list['mall_info']['user_id']){
+                $list['user_info']['type'] = 2;
+            }else{
+                $list['user_info']['type'] = 1;
+            }
+        }
         return $this->response($list);
 
     }

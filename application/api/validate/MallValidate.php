@@ -47,6 +47,7 @@ class MallValidate extends Validate
     protected $scene = [
         'shopping'=> ['mall_id', 'money'],
         'confirm_pay'=> ['order_id'],
+        'allocate'=> ['order_id'],
         'sell'=> ['type', 'mix_rmb','usdt_price','usdt_num'], // 我要发布（我要出售）
         'mall'=>['mall_id'], // 取消发布
         'again_mall'=>['mall_id'=> 'require|checkAgainMall'], // 重新发布

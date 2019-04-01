@@ -64,12 +64,19 @@ class Turntable extends BasicApi
             ->join('dw_turntable_set b', 'b.id=a.turntable_id')
             ->join('dw_users u', 'u.user_id=a.user_id')
             ->where(['a.status'=> 1])
-            ->field('u.user_name, a.add_time, b.prize, b.id as prize_id')
+            ->field('u.user_name,u.user_phone, a.add_time, b.prize_money,b.prize, b.id as prize_id')
             ->limit(10)
             ->page($page)
             ->order('a.add_time desc')
             ->select();
-
+        foreach($list as &$v){
+            if(!$v['user_name']){
+                $v['user_name'] = $v['user_phone'];
+            }
+            if($v['prize_money'] > 0){
+                $v['prize'] =$v['prize_money'].$v['prize'];
+            }
+        }
         return $this->response($list);
     }
 
