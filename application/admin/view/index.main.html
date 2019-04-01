@@ -87,7 +87,7 @@
 
             <section class="panel">
                 <div class="panel-heading" >
-                   <span id="btc-result">{$btc_result.btc_id}期开奖结果 btc价格: {$btc_result.btc_price}  |  涨幅 : {$btc_result.change}%</span>
+                   <span id="btc-result">{$btc_result.btc_id}期开奖结果 btc价格: {$btc_result.btc_price}  |  涨幅 : {$btc_result.change}%    可控制的期数为: {$btc_result.btc_ids}</span>
                     <a href="javascript:;" class="pull-right panel-toggle"><i class="iconfont">&#xe604;</i></a>
                 </div>
                 <div class="panel-body" style="height:324px;">
@@ -245,7 +245,7 @@
                     }
                     if(result.btc_result){
 
-                        var text = result.btc_result.btc_id + '期开奖结果 btc价格:' + result.btc_result.btc_price + ' |  涨幅 :' + result.btc_result.change + '%';
+                        var text = result.btc_result.btc_id + '期开奖结果 btc价格:' + result.btc_result.btc_price + ' |  涨幅 :' + result.btc_result.change + '%'+' 可控制的期数为:' + result.btc_result.btc_ids  ;
                         $('#btc-result').text(text);
                     }
                 }

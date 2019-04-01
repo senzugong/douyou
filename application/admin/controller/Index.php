@@ -89,18 +89,20 @@ class Index extends BasicAdmin
         //
         //最新的开奖结果
         $btc_result = Db::table('dw_btc')->order('add_time desc')->find();
+        //最新的开奖结果
+        $btc_result['btc_ids'] =$btc_result['btc_id']+1;
         //买涨的人数
-        $btc2['rise_count'] = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->count();
+        $btc2['rise_count'] = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>1,'status'=>0])->count();
         //买跌的人数
-        $btc2['fall_count'] = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->count();
+        $btc2['fall_count'] = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>2,'status'=>0])->count();
         //买的钱
         $rise = '0.00';
         $fall = '0.00';
-        $btc = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->select();
+        $btc = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>1,'status'=>0])->select();
         foreach($btc as &$v){
             $rise = bcadd($rise,$v['dw_money'],2);
         }
-        $btc1 = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->select();
+        $btc1 = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>2,'status'=>0])->select();
         //买跌的人数
         foreach($btc1 as &$v){
             $fall = bcadd($fall,$v['dw_money'],2);
@@ -143,18 +145,19 @@ class Index extends BasicAdmin
      */
     public function set_btc(){
         $btc_result = Db::table('dw_btc')->order('add_time desc')->find();
+        $btc_result['btc_ids'] =$btc_result['btc_id']+1;
         //买涨的人数
-        $btc2['rise_count'] = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->count();
+        $btc2['rise_count'] = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>1,'status'=>0])->count();
         //买跌的人数
-        $btc2['fall_count'] = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->count();
+        $btc2['fall_count'] = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>2,'status'=>0])->count();
         //买的钱
         $rise = '0.00';
         $fall = '0.00';
-        $btc = Db::table('dw_btc_post')->where(['type'=>1,'status'=>0])->select();
+        $btc = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>1,'status'=>0])->select();
         foreach($btc as &$v){
             $rise = bcadd($rise,$v['dw_money'],2);
         }
-        $btc1 = Db::table('dw_btc_post')->where(['type'=>2,'status'=>0])->select();
+        $btc1 = Db::table('dw_btc_post')->where(['btc_id'=>$btc_result['btc_ids'],'type'=>2,'status'=>0])->select();
         //买跌的人数
         foreach($btc1 as &$v){
             $fall = bcadd($fall,$v['dw_money'],2);

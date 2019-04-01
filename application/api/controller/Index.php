@@ -146,7 +146,7 @@ class Index extends BasicApi
         $fall = BtcPost::where(['status'=>0,'type'=>2])->sum('dw_money'); //跌
         if($rise && $fall){
             $list['rise'] = bcmul(bcdiv($rise,$rise+$fall,2),100) ;
-            $list['fall'] = bcsub(100,$list['risa']);
+            $list['fall'] = bcsub(100,$list['rise']);
         }else{
             if(!$rise && $fall){
                 $list['rise'] = 30;

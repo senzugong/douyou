@@ -153,6 +153,8 @@ class Turntable extends BasicApi
                 break;
             }
         }
+        $result['_proSum'] = $proSum;
+        $result['_randNum'] = $randNum;
         Db::startTrans();
         try {
             // 是否有免费次数

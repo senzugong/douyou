@@ -236,10 +236,10 @@ class Worker {
                 //随机的涨幅度
                 $change_number = rand(10001, 10010);
                 if ($result['is_rise'] == 1) {//开启了涨的风控
-                    $rise_price = bcmul(bcdiv($change_number, 10000, 4),100,2);
+                    $rise_price = bcsub(bcdiv($change_number, 10000, 4),1,4);
                     $data = [
-                        'btc_price' => bcmul($btc_id['btc_price'], $rise_price, 4),
-                        'change' => '+' . bcsub($change_number, 1, 4),
+                        'btc_price' => bcadd($btc_id['btc_price'],bcmul($btc_id['btc_price'], $rise_price, 4),4),
+                        'change' => '+' . bcmul($rise_price, 100, 4),
                         'dispaly_name' => 'okex交易所',
                         'add_time' => time()
                     ];
@@ -247,26 +247,28 @@ class Worker {
                     $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
                     foreach ($btc_post as &$v) {
                         if ($v['type'] == 1) {
-                            $dw_money = Db::table('dw_users')->where(['user_id' => $btc_post['user_id']])->value('dw_money');
+                            $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
+                            $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
                             MoneyLog::create([
                                 'user_id' => $v['user_id'],
                                 'log_content' => '猜涨跌',
                                 'type' => 2,
                                 'log_status'=>5,
-                                'chance_money' => bcmul($btc_post['dw_money'], $min['odds'], 2),
-                                'dw_money' => bcadd($dw_money, $btc_post['dw_money'], 2),
+                                'chance_money' => $change_money,
+                                'dw_money' => bcadd($dw_money, $change_money, 2),
                                 'add_time' => time(),
                             ]);
+                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $change_money, 2)]);
                             BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
                         } else {
                             BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
                         }
                     }
                 } elseif ($result['is_fall'] == 1) {//开启了跌的风控
-                    $rise_price = bcdiv($change_number, 10000, 4);
+                    $rise_price = bcsub(bcdiv($change_number, 10000, 4),1,4);
                     $data = [
-                        'btc_price' => bcsub(bcmul($btc_id['btc_price'], $rise_price, 4), $btc_id['btc_price'], 4),
-                        'change' => '-' . bcmul(bcsub($change_number, 1, 4),100,2),
+                        'btc_price' =>bcsub($btc_id['btc_price'],bcmul($btc_id['btc_price'], $rise_price, 4),4),
+                        'change' => '-' . bcmul($rise_price,100,2),
                         'dispaly_name' => 'okex交易所',
                         'add_time' => time()
                     ];
@@ -274,16 +276,18 @@ class Worker {
                     $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
                     foreach ($btc_post as &$v) {
                         if ($v['type'] == 2) {
-                            $dw_money = Db::table('dw_users')->where(['user_id' => $btc_post['user_id']])->value('dw_money');
+                            $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
+                            $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
                             MoneyLog::create([
                                 'user_id' => $v['user_id'],
                                 'log_content' => '猜涨跌',
                                 'type' => 2,
                                 'log_status'=>5,
-                                'chance_money' => bcmul($btc_post['dw_money'], $min['odds'], 2),
-                                'dw_money' => bcadd($dw_money, $btc_post['dw_money'], 2),
+                                'chance_money' => $change_money,
+                                'dw_money' => bcadd($dw_money, $change_money, 2),
                                 'add_time' => time(),
                             ]);
+                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $change_money, 2)]);
                             BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
                         } else {
                             BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
@@ -315,10 +319,11 @@ class Worker {
                                 'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
                                 'add_time' => time(),
                             ]);
+                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $v['dw_money'], 2)]);
                             BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
                         }
                     } elseif ($change > 0) {
-                        $change = '+' .  bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
+                        $change = '+' . bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
                         $data = [
                             'btc_price' => $coin_price,
                             'change' => $change,
@@ -330,15 +335,17 @@ class Worker {
                         foreach ($btc_post as &$v) {
                             if ($v['type'] == 1) {
                                 $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
+                                $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
                                 MoneyLog::create([
                                     'user_id' => $v['user_id'],
                                     'log_content' => '猜涨跌',
                                     'type' => 2,
                                     'log_status'=>5,
-                                    'chance_money' => bcmul($v['dw_money'], $min['odds'], 2),
-                                    'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
+                                    'chance_money' => $change_money,
+                                    'dw_money' => bcadd($dw_money, $change_money, 2),
                                     'add_time' => time(),
                                 ]);
+                                User::where(['user_id'=>$v['user_id']])->update(['dw_money'=>bcadd($dw_money, $change_money, 2)]);
                                 BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
                             } else {
                                 BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
@@ -357,15 +364,17 @@ class Worker {
                         foreach ($btc_post as &$v) {
                             if ($v['type'] == 2) {
                                 $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
+                                $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
                                 MoneyLog::create([
                                     'user_id' => $v['user_id'],
                                     'log_content' => '猜涨跌',
                                     'type' => 2,
                                     'log_status'=>5,
-                                    'chance_money' => bcmul($v['dw_money'], $min['odds'], 2),
-                                    'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
+                                    'chance_money' =>$change_money,
+                                    'dw_money' => bcadd($dw_money, $change_money, 2),
                                     'add_time' => time(),
                                 ]);
+                                User::where(['user_id'=>$v['user_id']])->update(['dw_money'=>bcadd($dw_money, $change_money, 2)]);
                                 BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
                             } else {
                                 BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
