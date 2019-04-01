@@ -63,8 +63,7 @@ class Member extends BasicAdmin
     {
         $sql = Db::table('dw_users')->alias('a')
             ->join('dw_user_examine b','b.user_id = a.user_id')
-            ->field('a.user_id, a.user_name, a.true_name, a.card_num, a.is_examine, b.img1, b.img2, b.img3, b.status')
-            ->order('b.examine_id desc');
+            ->field('a.user_id, a.user_name, a.true_name, a.card_num, a.is_examine, b.img1, b.img2, b.img3, b.status');
         if ($this->request->isPost()) {
             $result = $sql->where(['a.user_id'=> $this->request->post('user_id')])
                 ->update([
@@ -77,6 +76,8 @@ class Member extends BasicAdmin
             } else {
                 $this->error('数据保存失败, 请稍候再试!');
             }
+        } else {
+            $sql->order('b.examine_id desc');
         }
         return $this->_form($sql, '', '审核成功','member/index','a.user_id', ['a.user_id'=> $this->request->get('user_id')]);
     }
