@@ -2,6 +2,7 @@
 
 namespace app\api\controller;
 
+use app\common\library\Curl;
 use controller\BasicApi;
 use app\api\validate\LoginValidate;
 use app\common\model\User;
@@ -217,11 +218,19 @@ class Login extends BasicApi
         if($app_model == $reuslt1)
         {
             return  $this->response( '您已经是最新的版本了!' ,304);
-
         }else{
             $reuslt = Db::table('dw_app_model')->where(['type'=>$type])->find();
             return  $this->response($reuslt);
         }
-
+    }
+    /**
+     * 前端数据请求
+     */
+    public function btc_require(Request $request){
+        $type = $request->post('type','1min');
+        $size = $request->post('size',40);
+        $url = "http://api.bitkk.com/data/v1/kline?market=btc_usdt&type=$type&size=$size";
+        $data = Curl::get($url);
+        return  $this->response($data);
     }
 }

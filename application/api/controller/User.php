@@ -87,11 +87,12 @@ class User extends BasicApi
             $data['complete_rate'] = $userInfo['complete_rate'] +10;
         }
         $result = $userInfo->save($data);
-
-        // 将旧头像删除
-        if ($result && file_exists(ROOT_PATH . $imgOld)) {
-            unlink(ROOT_PATH . $imgOld);
-        }
+            if($userInfo['user_avatar'] !== 'erweima/avatar.png'){
+                // 将旧头像删除
+                if ($result && is_file(ROOT_PATH . $imgOld)) {
+                    @unlink(ROOT_PATH . $imgOld);
+                }
+            }
         return $this->response();
     }
 
@@ -196,7 +197,13 @@ class User extends BasicApi
             }
         }
         // 保存
-        Examine::create($data);
+        $result = UserAttestation::where(['user_id'=>$userInfo['user_id'],'status'=>2])->find();
+        if($result){
+            $data['status'] = 0;
+            Examine::where(['user_id'=>$userInfo['user_id']])->update($data);
+        }else{
+            Examine::create($data);
+        }
         $userInfo->save(['is_examine'=>2]);
         return  $this->response( );
     }

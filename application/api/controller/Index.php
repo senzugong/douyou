@@ -140,7 +140,7 @@ class Index extends BasicApi
        $list['result_time'] = bcsub(bcadd($list['btc_result']['add_time'],200),time());
        //买涨的人数
        $count = BtcPost::whereTime('add_time', 'today')->count();
-        $list['btc_result']['count_num'] = $count;
+        $list['btc_result']['count_num'] = 632+$count;
 //        $rise_num = BtcPost::whereTime('add_time', 'today')->where("type=1")->count();
         $rise = BtcPost::where(['status'=>0,'type'=>1])->sum('dw_money');//涨
         $fall = BtcPost::where(['status'=>0,'type'=>2])->sum('dw_money'); //跌

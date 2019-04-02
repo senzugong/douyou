@@ -38,6 +38,8 @@ class Register extends BasicApi
         $password = md5(md5($password)); //密码加密方式
         $data = [
             'user_phone' => $phone,
+            'user_avatar' => 'erweima/avatar.png',
+            'user_name' => substr_replace($phone, '****', 3, 4),
             'login_password'=>$password,
             'wx_openid'=> $wx_openid,
             'qq_openid'=> $qq_openid,

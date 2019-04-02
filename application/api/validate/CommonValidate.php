@@ -48,6 +48,7 @@ class CommonValidate
         $payError = $userInfo->payError;
         if (!$payError) {
             $payError = ErrorNum::create([
+                'pay_error_num'=>0,
                 'user_id'=>$userInfo->user_id,
                 'add_time'=>time(),
             ]);

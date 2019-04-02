@@ -259,6 +259,9 @@ EOF;
             return $this->response($validate->getError(), 304);
         }
         $userInfo = $request->userInfo;
+        if($userInfo['is_examine'] !=1){
+            return $this->response('未完成高级认证!', 304);
+        }
         $wallet_address = $request->post('wallet_address');
 
         $result =UserWallet::where(['wallet_address'=>$wallet_address,'user_id'=>$userInfo['user_id']])->find();
