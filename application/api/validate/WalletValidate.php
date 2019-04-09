@@ -8,6 +8,7 @@
 
 namespace app\api\validate;
 use app\common\model\MoneyLog;
+use app\common\model\UsdtLog;
 use app\common\model\UserWallet;
 use think\Validate;
 
@@ -89,7 +90,7 @@ class WalletValidate extends Validate
     protected function checkBill($value) {
         // 用户信息
         $userInfo = request()->userInfo;
-        $result = MoneyLog::where(['user_id'=>$userInfo['user_id'],'log_id'=>$value])->find();
+        $result = UsdtLog::where(['user_id'=>$userInfo['user_id'],'log_id'=>$value])->find();
         if (!$result) {
             return '该账单不存在!' ;
         }else{

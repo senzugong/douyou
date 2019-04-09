@@ -13,6 +13,7 @@ use app\common\model\GamePostdata;
 use app\common\model\GameResult;
 use app\common\model\GameType;
 use app\common\model\MoneyLog;
+use app\common\model\UsdtLog;
 use controller\BasicApi;
 use think\Db;
 use think\Request;
@@ -59,6 +60,7 @@ class Number extends BasicApi
     public function buy(Request $request, NumberBuy $numberBuy) {
         // 获取开奖信息
         $info = $this->getOpenInfo();
+        // 购入封盘时间
         $request->post(['halt_time'=> $info['halt_time']]);
         // 验证
         if (!$numberBuy->check($request->post())) {
@@ -68,8 +70,8 @@ class Number extends BasicApi
         Db::startTrans();
         try {
             $userInfo = $request->userInfo;
-            // 扣除抖金
-            $userInfo->dw_money = bcsub($userInfo->dw_money, $request->post('money'), 4);
+            // 扣除USDT
+            $userInfo->dw_usdt = bcsub($userInfo->dw_usdt, $request->post('money'), 4);
             $userInfo->save();
             // 获取赔率
             $gameType = GameType::get($request->post('type_id'));
@@ -83,13 +85,12 @@ class Number extends BasicApi
                 'add_time'=> time(),
             ]);
             // 添加日志
-            MoneyLog::create([
+            UsdtLog::create([
                 'user_id'=> $userInfo->user_id,
                 'log_content'=> '号码竞猜',
                 'type'=> 1,
-                'log_status'=>4,
-                'chance_money'=> $request->post('money'),
-                'dw_money'=> $userInfo->dw_money,
+                'chance_usdt'=> $request->post('money'),
+                'dw_usdt'=> $userInfo->dw_usdt,
                 'add_time'=> time(),
             ]);
             // 提交数据

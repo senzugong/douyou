@@ -43,6 +43,14 @@ class User extends Model
     }
 
     /**
+     * 获取用户USDT账单
+     * @return \think\model\relation\HasMany
+     */
+    public function userUsdtLog() {
+        return $this->hasMany(UsdtLog::class);
+    }
+
+    /**
      * 获取用户购买号码竞猜记录
      * @return \think\model\relation\HasMany
      */

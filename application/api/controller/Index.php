@@ -9,6 +9,7 @@
 namespace app\api\controller;
 
 use app\api\validate\IndexValidate;
+use app\common\library\Curl;
 use app\common\model\Banner;
 use app\common\model\Btc;
 use app\common\model\BtcPost;
@@ -98,15 +99,15 @@ class Index extends BasicApi
                 'add_time'=> time(),
             ]);
             // 用户得到抖金
-            $userInfo->save(['dw_money'=> bcadd($userInfo->dw_money, $rawardSet->raward_money, 4)]);
-            // 添加日志
+            $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt, $rawardSet->raward_money, 4)]);
+            // 添加日志1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
             MoneyLog::create([
                 'user_id'=> $userInfo->user_id,
                 'log_content'=> '签到',
                 'type'=> 2,
                 'log_status'=> 7,
-                'chance_money'=> $rawardSet->raward_money,
-                'dw_money'=> $userInfo->dw_money,
+                'chance_usdt'=> $rawardSet->raward_money,
+                'dw_usdt'=> $userInfo->dw_usdt,
                 'add_time'=> time(),
             ]);
             // 提交数据
@@ -127,58 +128,22 @@ class Index extends BasicApi
     }
 
     /**
-     * @param Request $request
+     * @param Request $request 首页的btc行情展示
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
     public function index(Request $request){
-        $userInfo = $request->userInfo;
-        $list['user_create'] =ceil((time()-$userInfo['add_time'])/(3600*24));
-        //btc开奖结果
-       $list['btc_result'] =Btc::order('btc_id desc')->find();
-       $list['result_time'] = bcsub(bcadd($list['btc_result']['add_time'],200),time());
-       //买涨的人数
-       $count = BtcPost::whereTime('add_time', 'today')->count();
-        $list['btc_result']['count_num'] = 632+$count;
-//        $rise_num = BtcPost::whereTime('add_time', 'today')->where("type=1")->count();
-        $rise = BtcPost::where(['status'=>0,'type'=>1])->sum('dw_money');//涨
-        $fall = BtcPost::where(['status'=>0,'type'=>2])->sum('dw_money'); //跌
-        if($rise && $fall){
-            $list['rise'] = bcmul(bcdiv($rise,$rise+$fall,2),100) ;
-            $list['fall'] = bcsub(100,$list['rise']);
-        }else{
-            if(!$rise && $fall){
-                $list['rise'] = 30;
-                $list['fall'] = 70;
-            }
-            if($rise && !$fall){
-                $list['rise'] = 75;
-                $list['fall'] = 25;
-            }
-            if(!$rise && !$fall){
-                $list['rise'] = 50;
-                $list['fall'] = 50;
-            }
-       }
-
-       //时时彩开奖结果
-       $list['number_game'] = GameResult::order('result_id desc')->find();
-
-       $list['game_count']  = GameResult::count();
-       //转盘中奖记录
-       $list['turntable_result'] =
-           TurntableLog::alias('a')
-           ->join('dw_turntable_set b','a.turntable_id = b.id')
-           ->join('dw_users c','a.user_id= c.user_id')
-           ->where("a.status = 1")->limit(20)->order('a.add_time desc')
-           ->field('c.user_name,c.user_phone,b.prize,a.*')
-           ->select();
-       foreach($list['turntable_result'] as &$v){
-           if(!$v['user_name']){
-               $v['user_name'] = substr_replace($v['user_phone'],'****',3,4);
-           }
-       }
+        $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
+        $data = Curl::get($url);
+        $price_now = $data['ticker']['sell'];//当前的btc价格（出售）
+        $btc_price = Db::table('dw_btc')->order('btc_id desc')->value('btc_price');//数据库中的btc价格
+        $list['recharge'] =  bcdiv(bcsub($price_now,$btc_price),$price_now,4)*100;
+        if(!$list['recharge'] || !$price_now){
+            $list['recharge'] = 0;
+        }
+        //累计竞猜人数
+        $list['user_count'] =   Db::table('dw_btc_order')->count();
         return $this->response($list);
 
     }
@@ -190,7 +155,8 @@ class Index extends BasicApi
      * @throws \think\exception\DbException
      */
     public function index_banner(Request $request){
-        $banner_list = Banner::where(['status'=>0])->select();
+        $banner_list['index'] = Banner::where("status = 0 and type IN (1,2)")->select();
+        $banner_list['icon'] = Banner::where("status = 0 and type = 3")->select();
         foreach($banner_list as &$v){
             $v['img_url'] = $v['img_url'] ? Config::get('image_url').$v['img_url'] : '';
         }
