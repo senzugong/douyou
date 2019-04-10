@@ -10,6 +10,9 @@ use app\api\validate\UserSuggest;
 use app\common\model\Examine;
 use app\common\model\MoneyLog;
 use app\common\model\Token;
+use app\common\model\UsdtChangelog;
+use app\common\model\UsdtLog;
+use app\common\model\UsdtMall;
 use app\common\model\UsdtOrder;
 use app\common\model\UserProposal;
 use app\common\model\UserWallet;
@@ -45,18 +48,34 @@ class User extends BasicApi
             $userInfo['is_wallet'] = 0;
         }
         //收入
-        $rise = MoneyLog::where(['type'=>2,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
+        $rise = UsdtLog::where(['type'=>2,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
         $all_expenditure = 0.00;
         foreach($rise as &$v){
-            $all_expenditure = bcadd($all_expenditure,$v['chance_money'],2) ;
+            $all_expenditure = bcadd($all_expenditure,$v['chance_usdt'],2) ;
         };
         //支出
-        $fill = MoneyLog::where(['type'=>1,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
+        $fill = UsdtLog::where(['type'=>1,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
         $all_fill = 0.00;
         foreach($fill as &$v){
-            $all_fill = bcadd($all_fill,$v['chance_money'],2) ;
+            $all_fill = bcadd($all_fill,$v['chance_usdt'],2) ;
         };
         $userInfo['today_money'] = bcsub($all_expenditure,$all_fill,2);
+        // 冻结资金
+        $sell_freeze = '0.00';
+        $usdtMall = $userInfo->usdtMall()
+            ->whereIn('status', [0, 1])
+            ->select();
+        foreach ($usdtMall as $val) {
+            $sell_freeze = bcadd($sell_freeze, bcsub($val['usdt_num'], $val['over_usdt'], 2), 2);
+        }
+        $userInfo['sell_freeze'] = $sell_freeze;
+        $fetch_freeze = '0.00';
+        $usdtChange = UsdtChangelog::where(['user_id'=> $userInfo['user_id'], 'type'=> 2, 'status'=> 0])
+            ->select();
+        foreach ($usdtChange as $val) {
+            $fetch_freeze = bcadd($fetch_freeze, $val['usdt_num'], 2);
+        }
+        $userInfo['fetch_freeze'] = $fetch_freeze;
         return $this->response($userInfo);
     }
 

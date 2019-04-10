@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 use app\common\library\Curl;
+use app\common\model\UsdtLog;
 use controller\BasicApi;
 use think\Config;
 use think\Db;
@@ -20,6 +21,147 @@ use think\Request;
  */
 class Wave extends BasicApi
 {
+    /**实时购买
+     * @param Request $request
+     */
+    public function buy(Request $request){
+        $result = $this->get_open();
+        if(!$result){
+            return $this->response('已休市!',304);
+        }
+        $userInfo = $request->userInfo;
+        $data['style'] = $request->post('style',1);//涨
+        $data['type'] = 1;
+        $data['buy_price'] = $request->post('buy_price');
+        if(!$data['buy_price']){
+            return $this->response('当前btc价格未传!',304);
+        }
+        $data['add_time'] = time();
+        $data['usdt_fee'] = $request->post('usdt_fee',50);
+        $data['sx_fee'] = bcmul($data['usdt_fee'],0.02,4);
+        $data['order_fee'] = $data['usdt_fee'];
+        $data['user_id'] = $userInfo['user_id'];
+        Db::startTrans();
+        try {
+            Db::table('dw_btc_order')->insert($data);
+            $fee = bcadd($data['usdt_fee'],$data['sx_fee'],4);
+            $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $fee, 4)]);
+            // 添加日志
+            UsdtLog::create([
+                'user_id'=> $userInfo->user_id,
+                'log_content'=> '实时猜涨跌',
+                'type'=> 1,
+                'log_status'=>5,
+                'chance_usdt'=> $fee,
+                'dw_usdt'=> $userInfo->dw_usdt,
+                'add_time'=> time(),
+            ]);
+            // 提交
+            Db::commit();
+            return $this->response();
+        } catch (\Exception $exception) {
+            // 回滚
+            Db::rollback();
+            return $this->response('下单失败',304);
+        }
+
+    }
+    /**点位购买
+     * @param Request $request
+     */
+    public  function buy_point(Request $request){
+        $result = $this->get_open();
+        if(!$result){
+            return $this->response('已休市!',304);
+        }
+        $userInfo = $request->userInfo;
+        $data['style'] = $request->post('style',1);//涨 2跌
+        $data['type'] = 2;
+        $data['buy_price'] = $request->post('buy_price');
+        if(!$data['buy_price']){
+            return $this->response('当前btc价格未传!',304);
+        }
+        $data['time_id'] = $request->post('time_id',1);
+        $data['add_time'] = time();
+        $data['usdt_fee'] = $request->post('usdt_fee',50);
+        $data['buy_quiz'] = $request->post('buy_quiz',1);
+        $usdt =  bcmul($data['usdt_fee'],$data['buy_quiz'],4);
+        $data['sx_fee'] = bcmul($usdt,0.02,4);
+        $data['order_fee'] = bcmul($data['usdt_fee'], $data['buy_quiz'],4);
+        $data['user_id'] = $userInfo['user_id'];
+        $data['btc_point'] = $request->post('btc_point','3/3');
+        $rise_point = explode('/',$data['btc_point']);
+        if($data['style'] == 1){
+            $data['rise_price'] =  bcadd($data['buy_price'],$rise_point[0],4);
+            $data['fill_price'] =  bcsub($data['buy_price'],$rise_point[1],4);
+        }else{
+            $data['rise_price'] =  bcsub($data['buy_price'],$rise_point[0],4);
+            $data['fill_price'] =  bcadd($data['buy_price'],$rise_point[1],4);
+        }
+        $time = Db::table('dw_basic_time')->where(['id'=>$data['time_id']])->value('settletment_time');
+        $data['end_time'] = bcadd($data['add_time'],$time);
+        Db::startTrans();
+        try {
+            Db::table('dw_btc_order')->insert($data);
+            $fee = bcadd($usdt,$data['sx_fee'],4);
+            $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $fee, 4)]);
+            // 添加日志
+            UsdtLog::create([
+                'user_id'=> $userInfo->user_id,
+                'log_content'=> '实时猜涨跌',
+                'type'=> 1,
+                'log_status'=>5,
+                'chance_usdt'=> $fee,
+                'dw_usdt'=> $userInfo->dw_usdt,
+                'add_time'=> time(),
+            ]);
+            // 提交
+            Db::commit();
+            return $this->response();
+        } catch (\Exception $exception) {
+            // 回滚
+            Db::rollback();
+            return $this->response('下单失败',304);
+        }
+    }
+
+    /**
+     * @param Request $request持仓记录
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public  function order_list(Request $request){
+        $userInfo = $request->userInfo;
+        $type = $request->post('type',1);
+        $list = Db::table('dw_btc_order')->where(['user_id'=>$userInfo['user_id'],'type'=>$type,'is_win'=>0])->order('order_id desc')->select();
+        foreach($list as &$v){
+          $v['add_time'] = $this->getTime($v['add_time']);
+        }
+        return $this->response($list);
+
+    }
+
+    /**
+     * @param Request $request交易历史记录
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function history_order(Request $request)
+    {
+        $userInfo = $request->userInfo;
+        $type = $request->post('type',1);
+        $page = $request->post('page',1);
+        $list = Db::table('dw_btc_order')->where("user_id={$userInfo['user_id']} and type=$type and is_win !=0")->order('order_id desc')->page($page)->select();
+        foreach($list as &$v){
+            $v['add_time'] = $this->getTime($v['add_time']);
+            $v['end_time'] =$v['end_time']? $this->getTime($v['end_time']):'';
+        }
+        return $this->response($list);
+    }
     /**下注信息
      * @param Request $request
      * @return \think\Response
@@ -38,6 +180,22 @@ class Wave extends BasicApi
      }
      $list['recharge'] = 2;
      $list['btc_price'] = Db::table('dw_btc')->order('btc_id desc')->value('btc_price');
+       $week = date("w");//今天周几
+       if($week == 0){
+           $list['opentime'] = Db::table('dw_basic_opentime')->where(['id'=>7])->find();
+       }else{
+           $list['opentime'] = Db::table('dw_basic_opentime')->where(['id'=>$week])->find();
+       }
+
+       $time = time();
+       $start_time = strtotime(date('Y-m-d').' '.$list['opentime']['start_time']);
+
+       $end_time = strtotime(date('Y-m-d').' '.$list['opentime']['end_time']);
+       if($time>$start_time && $time< $end_time){
+           $list['is_open'] = 1;
+       }else{
+           $list['is_open'] = 0;
+       }
        return $this->response($list);
    }
 
@@ -54,17 +212,24 @@ class Wave extends BasicApi
        return $this->response($data);
    }
 
-    /**
-     * 每秒请求的btc值
-     * @param Request $request
-     * @return \think\Response
-     */
-   public function btc_now(Request $request){
-       $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
-       // 获取数据
-       $data = Curl::get($url);
-       return $this->response($data);
-   }
+
+    public function get_open(){
+        $week = date("w");//今天周几
+        if($week == 0){
+            $list = Db::table('dw_basic_opentime')->where(['id'=>7])->find();
+        }else{
+            $list = Db::table('dw_basic_opentime')->where(['id'=>$week])->find();
+        }
+        $time = time();
+        $start_time = strtotime(date('Y-m-d').' '.$list['start_time']);
+
+        $end_time = strtotime(date('Y-m-d').' '.$list['end_time']);
+        if($time>$start_time && $time< $end_time){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
 
 
     /**

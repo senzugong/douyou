@@ -9,10 +9,11 @@
 namespace app\api\controller;
 
 use app\api\validate\TurntableDraw;
-use app\common\model\MoneyLog;
+
 use app\common\model\RawardAddress;
 use app\common\model\TurntableLog;
 use app\common\model\TurntableSet;
+use app\common\model\UsdtLog;
 use controller\BasicApi;
 use think\Config;
 use think\Db;
@@ -161,16 +162,16 @@ class Turntable extends BasicApi
                 ->find();
             if (!$freeNum) {
                 // 扣除抽奖金额0.5抖金
-                $userInfo->save(['dw_money' => bcsub($userInfo->dw_money, 0.5, 2)]);
+                $userInfo->save(['dw_usdt' => bcsub($userInfo->dw_usdt, 0.5, 2)]);
                 // 添加日志
-                MoneyLog::create([
-                    'user_id' => $userInfo->user_id,
-                    'log_content' => '幸运转盘',
-                    'type' => 1,
+                UsdtLog::create([
+                    'user_id'=> $userInfo->user_id,
+                    'log_content'=> '号码竞猜',
+                    'type'=> 1,
                     'log_status'=>3,
-                    'chance_money' => 0.5,
-                    'dw_money' => $userInfo->dw_money,
-                    'add_time' => time(),
+                    'chance_usdt'=> 0.5,
+                    'dw_usdt'=> $userInfo->dw_usdt,
+                    'add_time'=> time(),
                 ]);
             } else {
                 // 领取免费次数
@@ -197,15 +198,15 @@ class Turntable extends BasicApi
                 case 3:
                     // 蚪金红包 价值888元
                     $winMoney = TurntableSet::where(['id'=>3])->value('prize_money');
-                    $userInfo->save(['dw_money'=> bcadd($userInfo->dw_money, $winMoney, 4)]);
+                    $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt, $winMoney, 4)]);
                     // 添加日志
-                    MoneyLog::create([
+                    UsdtLog::create([
                         'user_id'=> $userInfo->user_id,
-                        'log_content'=> '幸运转盘-蚪金红包',
-                        'type'=> 2,
+                        'log_content'=> '号码竞猜',
+                        'type'=> 1,
                         'log_status'=>3,
-                        'chance_money'=> $winMoney,
-                        'dw_money'=> $userInfo->dw_money,
+                        'chance_usdt'=> $winMoney,
+                        'dw_usdt'=> $userInfo->dw_usdt,
                         'add_time'=> time(),
                     ]);
                     // 中奖金额
@@ -217,15 +218,15 @@ class Turntable extends BasicApi
                 case 4:
                     // 蚪金红包 价值222元
                     $winMoney = TurntableSet::where(['id'=>4])->value('prize_money');
-                    $userInfo->save(['dw_money'=> bcadd($userInfo->dw_money, $winMoney, 4)]);
+                    $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt, $winMoney, 4)]);
                     // 添加日志
-                    MoneyLog::create([
+                    UsdtLog::create([
                         'user_id'=> $userInfo->user_id,
-                        'log_content'=> '幸运转盘-蚪金红包',
-                        'type'=> 2,
+                        'log_content'=> '号码竞猜',
+                        'type'=> 1,
                         'log_status'=>3,
-                        'chance_money'=> $winMoney,
-                        'dw_money'=> $userInfo->dw_money,
+                        'chance_usdt'=> $winMoney,
+                        'dw_usdt'=> $userInfo->dw_usdt,
                         'add_time'=> time(),
                     ]);
                     // 中奖金额
@@ -237,15 +238,15 @@ class Turntable extends BasicApi
                 case 5:
                     // 蚪金红包 价值20元
                     $winMoney = TurntableSet::where(['id'=>5])->value('prize_money');
-                    $userInfo->save(['dw_money'=> bcadd($userInfo->dw_money, $winMoney, 4)]);
+                    $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt, $winMoney, 4)]);
                     // 添加日志
-                    MoneyLog::create([
+                    UsdtLog::create([
                         'user_id'=> $userInfo->user_id,
-                        'log_content'=> '幸运转盘-蚪金红包',
-                        'type'=> 2,
+                        'log_content'=> '号码竞猜',
+                        'type'=> 1,
                         'log_status'=>3,
-                        'chance_money'=> $winMoney,
-                        'dw_money'=> $userInfo->dw_money,
+                        'chance_usdt'=> $winMoney,
+                        'dw_usdt'=> $userInfo->dw_usdt,
                         'add_time'=> time(),
                     ]);
                     // 中奖金额
@@ -265,15 +266,15 @@ class Turntable extends BasicApi
                 case 7:
                     // 蚪金随机红包 5-50蚪金
                     $winMoney = TurntableSet::where(['id'=>7])->value('prize_money');
-                    $userInfo->save(['dw_money'=> bcadd($userInfo->dw_money, $winMoney, 4)]);
+                    $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt, $winMoney, 4)]);
                     // 添加日志
-                    MoneyLog::create([
+                    UsdtLog::create([
                         'user_id'=> $userInfo->user_id,
-                        'log_content'=> '幸运转盘-蚪金红包',
-                        'type'=> 2,
+                        'log_content'=> '号码竞猜',
+                        'type'=> 1,
                         'log_status'=>3,
-                        'chance_money'=> $winMoney,
-                        'dw_money'=> $userInfo->dw_money,
+                        'chance_usdt'=> $winMoney,
+                        'dw_usdt'=> $userInfo->dw_usdt,
                         'add_time'=> time(),
                     ]);
                     // 中奖金额

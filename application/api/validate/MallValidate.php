@@ -20,7 +20,6 @@ class MallValidate extends Validate
         'pay_type'=> 'require|between:1,3',
         'gathering_id'=> 'require',
         'usdt_num'=>'require|egt:1|checkUsdtnum',
-        'type'=> 'require|between:1,2',
         'usdt_price'=>'require|gt:0',
         'mix_rmb'=>'require|gt:0',
         'order_id'=>'require',
@@ -48,7 +47,7 @@ class MallValidate extends Validate
         'shopping'=> ['mall_id', 'money'],
         'confirm_pay'=> ['order_id'],
         'allocate'=> ['order_id'],
-        'sell'=> ['type','usdt_price','usdt_num'], // 我要发布（我要出售）
+        'sell'=> ['usdt_price','usdt_num'], // 我要发布（我要出售）
         'mall'=>['mall_id'], // 取消发布
         'again_mall'=>['mall_id'=> 'require|checkAgainMall'], // 重新发布
         'cancel_order'=> ['order_id'=> 'require|checkStatus:cancel'], // 取消订单
@@ -100,7 +99,7 @@ class MallValidate extends Validate
         }
         // 用户出售usdt
         $overNum = bcsub($usdtMall['usdt_num'], $usdtMall['over_usdt'], 2);
-        if ($usdtMall['type'] == 1 && bcmul($overNum,1.02,2) > $userInfo['dw_usdt']) {
+        if (bcmul($overNum,1.02,2) > $userInfo['dw_usdt']) {
             return '你的账户usdt不足!';
         }
         return true;
@@ -129,11 +128,11 @@ class MallValidate extends Validate
             return '金额大于限制金额!';
         }
         // 用户信息
-        $userInfo = request()->userInfo;
+        // $userInfo = request()->userInfo;
         // 挂单是收购时，判断用户是否有充足的usdt
-        if ($mall_info['type'] == 2 && $userInfo->dw_usdt < bcmul($value,1.02,2)) {
-            return '你的USDT不足，';
-        }
+        // if ($mall_info['type'] == 2 && $userInfo->dw_usdt < bcmul($value,1.02,2)) {
+        //     return '你的USDT不足，';
+        // }
         return true;
     }
 

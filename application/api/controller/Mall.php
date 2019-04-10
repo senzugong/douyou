@@ -36,11 +36,10 @@ class Mall extends BasicApi
     public function mall(Request $request){
         // 分页
         $page = $request->param('page', 1);
-        $type = $request->param('type', 1);  // 1是我要购买 2是我要出售
         // 获取发布的记录
         $list['mall_list'] =UsdtMall::alias('a')
             ->join('dw_users b', 'a.user_id = b.user_id')
-            ->where("a.type = $type and a.status IN (0,1)")
+            ->where("a.status IN (0,1)")
             ->field('b.user_name,b.user_avatar,a.*')
             ->order('a.usdt_price asc')
             ->page($page)
@@ -49,7 +48,7 @@ class Mall extends BasicApi
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
             $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],2);
         }
-        $list['mall_count'] =  UsdtMall::where("type = $type and status IN (0,1)")->count();
+        $list['mall_count'] =  UsdtMall::where("status IN (0,1)")->count();
         return $this->response($list);
     }
 
@@ -89,20 +88,6 @@ class Mall extends BasicApi
                 'over_usdt'=> $overNum,
                 'status'=> $overNum >= $usdtMall->usdt_num ? 2 : 1,
             ]);
-            // 发布是收购usdt，要扣除用户usdt
-            if ($usdtMall['type'] == 2) {
-                $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($overNum,1.02,2), 4)]);
-                // USDT日志
-                UsdtLog::create([
-                    'user_id'=> $userInfo->user_id,
-                    'log_content'=> '场外交易出售USDT',
-                    'usdt_charge_type'=> 1,
-                    'type'=> 1, // 1 支出 2转入
-                    'chance_usdt'=> bcmul($overNum,1.02,2),
-                    'dw_usdt'=> $userInfo->dw_usdt,
-                    'add_time'=> time(),
-                ]);
-            }
             // 生成订单
             $usdtOrder = UsdtOrder::create([
                 'order_sn' => $order_sn,
@@ -169,41 +154,21 @@ class Mall extends BasicApi
         $order = UsdtOrder::get($request->post('order_id'));
         Db::startTrans();
         try {
-            // 挂单信息
-            $usdtMall = $order->usdtMall;
-            if ($usdtMall['type'] == 1) {
-                // 出售的挂单，将币拨到下单人
-                $orderUser = $order->orderUser;
-                $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, $order->order_usdt_num, 4)]);
-                // USDT日志
-                UsdtLog::create([
-                    'user_id'=> $orderUser->user_id,
-                    'log_content'=> '场外交易收购USDT',
-                    'usdt_charge_type'=> 1,
-                    'type'=> 2, // 1 支出 2转入
-                    'chance_usdt'=> $order->order_usdt_num,
-                    'dw_usdt'=> $orderUser->dw_usdt,
-                    'add_time'=> time(),
-                ]);
-            } elseif ($usdtMall['type'] == 2) {
-                // 收购的挂单，将币拨到挂单人
-                $mallUser = $order->mallUser;
-                $mallUser->save(['dw_usdt'=> bcadd($mallUser->dw_usdt, $order->order_usdt_num, 4)]);
-                // USDT日志
-                UsdtLog::create([
-                    'user_id'=> $mallUser->user_id,
-                    'log_content'=> '场外交易收购USDT',
-                    'usdt_charge_type'=> 1,
-                    'type'=> 2, // 1 支出 2转入
-                    'chance_usdt'=> $order->order_usdt_num,
-                    'dw_usdt'=> $mallUser->dw_usdt,
-                    'add_time'=> time(),
-                ]);
-            } else {
-                throw new \Exception('错误的订单');
-            }
-            // 拨币成功，将订单改成已完成
-            // 0代付款  1已付款（待放币） 2成功 （已付款已方币） 3申述中（已支付完成 未放币）  4取消
+            // 出售的挂单，将币拨到下单人
+            $orderUser = $order->orderUser;
+            $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, $order->order_usdt_num, 4)]);
+            // USDT日志
+            UsdtLog::create([
+                'user_id'=> $orderUser->user_id,
+                'log_content'=> '场外交易购买USDT',
+                'usdt_charge_type'=> 1,
+                'type'=> 2, // 1 支出 2转入
+                'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                'chance_usdt'=> $order->order_usdt_num,
+                'dw_usdt'=> $orderUser->dw_usdt,
+                'add_time'=> time(),
+            ]);
+
             $order->save(['status'=> 2]);
             // 提交
             Db::commit();
@@ -258,25 +223,16 @@ class Mall extends BasicApi
         if($userInfo['is_examine'] !=1){
             return $this->response('未完成高级认证!', 304);
         }
-        $type  = $request->post('type');
-        $count = UsdtMall::where("'user_id'={$userInfo['user_id']}  and type =$type and status !=3")->count();
+        $count = UsdtMall::where("'user_id'={$userInfo['user_id']}  and status !=3")->count();
         if($count >=2 ){
             return $this->response('当前只能发布两条数据', 304);
         }
 
         $usdt_num = $request->post('usdt_num');
-        $type  = $request->post('type');
-        if($type==1){
-            if($usdt_num <1){
-                return $this->response('出售usdt数量最低为1', 304);
-            }
-            $usdt_price = $request->post('usdt_price',6.50); //usdt单价
-        }else{
-            if($usdt_num <500){
-                return $this->response('收购usdt数量最低为500', 304);
-            }
-            $usdt_price = $request->post('usdt_price',6.70); //usdt单价
+        if($usdt_num <1){
+            return $this->response('出售usdt数量最低为1', 304);
         }
+        $usdt_price = $request->post('usdt_price',6.50); //usdt单价
         $mix_rmb = $request->post('mix_rmb',$usdt_price); //最小的交易金额
         $max_rmb = $request->post('max_rmb',bcmul($usdt_num,$usdt_price,4)); //最大的交易金额
         if($mix_rmb >= $max_rmb){
@@ -300,30 +256,27 @@ class Mall extends BasicApi
                 'usdt_price' => $usdt_price,
                 'mix_rmb' => $mix_rmb,
                 'max_rmb' => $max_rmb,
-                'type' => $type,
                 'user_id' => $userInfo['user_id'],
                 'wx_gathering' => $wx_gathering,
                 'bank_gathering' => $bank_gathering,
                 'zfb_gathering' => $zfb_gathering,
 
             ]);
-            // 用户出售USDT
-            if ($type == 1) {
-                // 扣除usdt
-                $userInfo->save([
-                    'dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 2),
-                ]);
-                // USDT日志
-                UsdtLog::create([
-                    'user_id' => $userInfo->user_id,
-                    'log_content' => '场外交易出售USDT',
-                    'usdt_charge_type' => 1,
-                    'type' => 1, // 1 支出 2转入
-                    'chance_usdt' =>  bcmul($usdt_num,1.02,2),
-                    'dw_usdt' => $userInfo->dw_usdt,
-                    'add_time' => time(),
-                ]);
-            }
+            // 扣除usdt
+            $userInfo->save([
+                'dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 2),
+            ]);
+            // USDT日志
+            UsdtLog::create([
+                'user_id' => $userInfo->user_id,
+                'log_content' => '场外交易出售USDT',
+                'usdt_charge_type' => 1,
+                'type' => 1, // 1 支出 2转入
+                'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                'chance_usdt' =>  bcmul($usdt_num,1.02,2),
+                'dw_usdt' => $userInfo->dw_usdt,
+                'add_time' => time(),
+            ]);
             // 提交
             Db::commit();
             return $this->response();
@@ -403,20 +356,20 @@ class Mall extends BasicApi
             $v['mall_user_avatar'] = Config::get('image_url').$v['mall_user_avatar'];
             $user_mall = UsdtMall::where(['mall_id'=>$v['mall_id']])->find();
             $v['usdt_price'] = $user_mall['usdt_price'];
-            if($user_mall['type'] ==1){
-                if($userInfo['user_id'] == $user_mall['user_id']){
-                    $v['mall_type'] = 1;
-                }else{
-                    $v['mall_type'] = 2;
-                }
-            }
-            if($user_mall['type'] ==2){
-                if($userInfo['user_id'] == $user_mall['user_id']){
-                    $v['mall_type'] = 2;
-                }else{
-                    $v['mall_type'] = 1;
-                }
-            }
+            // if($user_mall['type'] ==1){
+            //     if($userInfo['user_id'] == $user_mall['user_id']){
+            //         $v['mall_type'] = 1;
+            //     }else{
+            //         $v['mall_type'] = 2;
+            //     }
+            // }
+            // if($user_mall['type'] ==2){
+            //     if($userInfo['user_id'] == $user_mall['user_id']){
+            //         $v['mall_type'] = 2;
+            //     }else{
+            //         $v['mall_type'] = 1;
+            //     }
+            // }
 
 
 
@@ -440,135 +393,74 @@ class Mall extends BasicApi
         }
         $userInfo = $request->userInfo;
         $mall_id  = $request->post('mall_id');//发布的id
-        $type  = $request->post('type',1);//发布卖出  我要收购
         $mall_info = UsdtMall::get($mall_id);
-        if($type == 1){
-            if($mall_info['status'] == 0){
-                Db::startTrans();
-                try{
-                    // 挂卖下架
-                    $mall_info->save(['status'=>3]);
-                    // 用户USDT余额
-                    $userInfo->save([
-                        'dw_usdt'=>bcadd($userInfo['dw_usdt'], bcmul($mall_info['usdt_num'],1.02,2), 4)
-                    ]);
-                    // USDT日志
-                    UsdtLog::create([
-                        'user_id' => $userInfo->user_id,
-                        'log_content' => '场外交易-下架出售USDT',
-                        'usdt_charge_type' => 1,
-                        'type' => 2, // 1 支出 2转入
-                        'chance_usdt' => bcmul($mall_info['usdt_num'],1.02,2),
-                        'dw_usdt' => $userInfo->dw_usdt,
-                        'add_time' => time(),
-                    ]);
-                    Db::commit();
-                    return $this->response();
-                }catch (\Exception $exception){
-                    Db::rollback();
-                    return $this->response('取消失败!',304);
-                }
-            }elseif($mall_info['status'] == 1){//部分成交
-                // 订单列表
-                $orderList = UsdtOrder::where("mall_id'=>$mall_id and mall_user_id'={$userInfo['user_id']} and status IN(1,2,3)")
-                    ->field('order_usdt_num')
-                    ->select();
-                // 取消扣除的usdt
-                $usdt_order = 0;
-                foreach ($orderList as $item) {
-                    $usdt_order = bcadd($usdt_order, $item->order_usdt_num, 4);
-                }
-                //用户需要扣除的
-                $usdt_mall = bcsub($mall_info['usdt_num'],$usdt_order,2);
-                Db::startTrans();
-                try{
-                    // 没有确认支付的订单取消其订单
-                    UsdtOrder::where(['mall_id'=>$mall_id,'status'=>0])->update(['status'=>4]);
-                    // 挂卖下架
-                    $mall_info->save([
-                        'status'=>3,
-                        'over_usdt'=>$usdt_order
-                    ]);
-                    // 用户USDT余额
-                    $userInfo->save([
-                        'dw_usdt'=> bcadd($userInfo->dw_usdt, bcmul($usdt_mall,1.02,2), 4)
-                    ]);
-                    // USDT日志
-                    UsdtLog::create([
-                        'user_id' => $userInfo->user_id,
-                        'log_content' => '场外交易-下架出售USDT',
-                        'usdt_charge_type' => 1,
-                        'type' => 2, // 1 支出 2转入
-                        'chance_usdt' =>bcmul($usdt_mall,1.02,2),
-                        'dw_usdt' => $userInfo->dw_usdt,
-                        'add_time' => time(),
-                    ]);
-                    Db::commit();
-                    return $this->response();
-                }catch (\Exception $exception){
-                    Db::rollback();
-                    return $this->response('取消失败!',304);
-                }
+        if($mall_info['status'] == 0){
+            Db::startTrans();
+            try{
+                // 挂卖下架
+                $mall_info->save(['status'=>3]);
+                // 用户USDT余额
+                $userInfo->save([
+                    'dw_usdt'=>bcadd($userInfo['dw_usdt'], bcmul($mall_info['usdt_num'],1.02,2), 4)
+                ]);
+                // USDT日志
+                UsdtLog::create([
+                    'user_id' => $userInfo->user_id,
+                    'log_content' => '场外交易-下架出售USDT',
+                    'usdt_charge_type' => 1,
+                    'type' => 2, // 1 支出 2转入
+                    'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                    'chance_usdt' => bcmul($mall_info['usdt_num'],1.02,2),
+                    'dw_usdt' => $userInfo->dw_usdt,
+                    'add_time' => time(),
+                ]);
+                Db::commit();
+                return $this->response();
+            }catch (\Exception $exception){
+                Db::rollback();
+                return $this->response('取消失败!',304);
             }
-        } elseif ($type == 2) { // 取消我要收购usdt
-            if ($mall_info['status'] == 0)
-            {
-                Db::startTrans();
-                try {
-                    $mall_info->save(['status'=>3]);
-                    // 提交
-                    Db::commit();
-                    return $this->response();
-                } catch (\Exception $exception) {
-                    // 回滚
-                    Db::rollback();
-                    return $this->response('取消失败!',304);
-                }
-            } elseif ($mall_info['status'] == 1)
-            {
-                // 订单列表
-                $orderList = UsdtOrder::where("mall_id'=>$mall_id and mall_user_id'={$userInfo['user_id']} and status IN(1,2,3)")
-                    ->field('user_id, order_usdt_num')
-                    ->select();
-                Db::startTrans();
-                try{
-                    // 没有确认付款的订单取消
-                    UsdtOrder::where(['mall_id'=>$mall_id,'status'=>0])->update(['status'=>4]);
-                    // 取消扣除的usdt
-                    $usdt_order = 0;
-                    // 退币（从订单退到下单用户）
-                    foreach ($orderList as $item) {
-                        // 下单用户
-                        $userOrder = $item->orderUser;
-                        $userOrder->save([
-                            'dw_usdt'=>bcadd($userOrder->dw_usdt, bcmul($item->order_usdt_num,1.02,2), 4)
-                        ]);
-                        // USDT日志
-                        UsdtLog::create([
-                            'user_id' => $userOrder->user_id,
-                            'log_content' => '场外交易-下架出售USDT',
-                            'usdt_charge_type' => 1,
-                            'type' => 2, // 1 支出 2转入
-                            'chance_usdt' =>bcmul($item->order_usdt_num,1.02,2),
-                            'dw_usdt' => $userOrder->dw_usdt,
-                            'add_time' => time(),
-                        ]);
-                        // 计算收购数量
-                        $usdt_order = bcadd($usdt_order, $item->order_usdt_num, 4);
-                    }
-                    // 挂买下架
-                    $mall_info->save([
-                        'status'=>3,
-                        'over_usdt'=>$usdt_order
-                    ]);
-                    // 提交表单
-                    Db::commit();
-                    return $this->response();
-                }catch (\Exception $exception){
-                    // 回滚
-                    Db::rollback();
-                    return $this->response('取消失败!',304);
-                }
+        }elseif($mall_info['status'] == 1){//部分成交
+            // 订单列表
+            $orderList = UsdtOrder::where("mall_id'=>$mall_id and mall_user_id'={$userInfo['user_id']} and status IN(1,2,3)")
+                ->field('order_usdt_num')
+                ->select();
+            // 取消扣除的usdt
+            $usdt_order = 0;
+            foreach ($orderList as $item) {
+                $usdt_order = bcadd($usdt_order, $item->order_usdt_num, 4);
+            }
+            //用户需要扣除的
+            $usdt_mall = bcsub($mall_info['usdt_num'],$usdt_order,2);
+            Db::startTrans();
+            try{
+                // 没有确认支付的订单取消其订单
+                UsdtOrder::where(['mall_id'=>$mall_id,'status'=>0])->update(['status'=>4]);
+                // 挂卖下架
+                $mall_info->save([
+                    'status'=>3,
+                    'over_usdt'=>$usdt_order
+                ]);
+                // 用户USDT余额
+                $userInfo->save([
+                    'dw_usdt'=> bcadd($userInfo->dw_usdt, bcmul($usdt_mall,1.02,2), 4)
+                ]);
+                // USDT日志
+                UsdtLog::create([
+                    'user_id' => $userInfo->user_id,
+                    'log_content' => '场外交易-下架出售USDT',
+                    'usdt_charge_type' => 1,
+                    'type' => 2, // 1 支出 2转入
+                    'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                    'chance_usdt' =>bcmul($usdt_mall,1.02,2),
+                    'dw_usdt' => $userInfo->dw_usdt,
+                    'add_time' => time(),
+                ]);
+                Db::commit();
+                return $this->response();
+            }catch (\Exception $exception){
+                Db::rollback();
+                return $this->response('取消失败!',304);
             }
         }
 
@@ -610,6 +502,7 @@ class Mall extends BasicApi
                     'log_content' => '场外交易-上架出售USDT',
                     'usdt_charge_type' => 1,
                     'type' => 1, // 1 支出 2转入
+                    'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
                     'chance_usdt' => bcmul($usdt_num,1.02,2),
                     'dw_usdt' => $userInfo->dw_usdt,
                     'add_time' => time(),
@@ -649,21 +542,6 @@ class Mall extends BasicApi
             $order->save(['status'=>4]);
             // 返还usdt到挂单
             $mall->save(['over_usdt' => $usdt]);
-            if ($mall['type'] == 2) {
-                // 退回下单人账户
-                $orderUser = $order->orderUser;
-                $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, bcmul($usdt,1.02,2), 4)]);
-                // USDT日志
-                UsdtLog::create([
-                    'user_id' => $orderUser->user_id,
-                    'log_content' => '场外交易-取消交易USDT',
-                    'usdt_charge_type' => 1,
-                    'type' => 2, // 1 支出 2转入
-                    'chance_usdt' => bcmul($usdt,1.02,2),
-                    'dw_usdt' => $orderUser->dw_usdt,
-                    'add_time' => time(),
-                ]);
-            }
             // 提交数据
             Db::commit();
             return $this->response();
@@ -681,17 +559,17 @@ class Mall extends BasicApi
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-        public function detail_order(Request $request){
-            $order_id =$request->post('order_id');
-            if(!$order_id){
-                return $this->response('订单id不能为空!',304);
-            }
-            $detail_order = UsdtOrder::where(['order_id'=>$order_id])->find();
-            $detail_order['add_time'] = date('Y-m-d H:i:s',$detail_order['add_time']);
-            $detail_order['usdt_price'] = UsdtMall::where(['mall_id'=>$detail_order['mall_id']])->value('usdt_price');
-            return $this->response($detail_order);
-
+    public function detail_order(Request $request){
+        $order_id =$request->post('order_id');
+        if(!$order_id){
+            return $this->response('订单id不能为空!',304);
         }
+        $detail_order = UsdtOrder::where(['order_id'=>$order_id])->find();
+        $detail_order['add_time'] = date('Y-m-d H:i:s',$detail_order['add_time']);
+        $detail_order['usdt_price'] = UsdtMall::where(['mall_id'=>$detail_order['mall_id']])->value('usdt_price');
+        return $this->response($detail_order);
+
+    }
     /**
      * @param Request $request
      * @return \think\Response
@@ -709,13 +587,7 @@ class Mall extends BasicApi
         $list['detail_order']['cancel_time'] = ($list['detail_order']['add_time'] +900)-time();
         $list['detail_order'] ['add_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['add_time']);
         $list['mall_info'] = UsdtMall::where(['mall_id'=>$list['detail_order']['mall_id']])->find();
-        if($list['detail_order']['pay_type'] ==1){
-
-            $list ['pay_info'] =UserBank::where(['bank_id'=> $list['detail_order']['gathering_id']])->find();
-        }else{
-            $list ['pay_info'] =UserGathering::where(['gathering_id'=>$list['detail_order']['gathering_id']])->find();
-            $list['pay_info']['gathering_img'] = $list['pay_info']['gathering_img']  ?Config::get('image_url').$list['pay_info']['gathering_img'] :'';
-        }
+        $list ['pay_info'] =UserBank::where(['bank_id'=> $list['detail_order']['gathering_id']])->find();
 
         if($userInfo['user_id'] == $list['detail_order']['mall_user_id']){
             $list['user_info'] = User::where(['user_id'=>$list['detail_order']['user_id']])->field('user_name,user_avatar')->find();
@@ -724,19 +596,10 @@ class Mall extends BasicApi
             $list['user_info'] = User::where(['user_id'=>$list['detail_order']['mall_user_id']])->field('user_name,user_avatar')->find();
             $list['user_info']['user_avatar'] = $list['user_info']['user_avatar']  ?Config::get('image_url').$list['user_info']['user_avatar'] :'';
         }
-        if($list['mall_info']['type'] ==1){
-            if($userInfo['user_id'] ==$list['mall_info']['user_id']){
-                $list['user_info']['type'] = 1;
-            }else{
-                $list['user_info']['type'] = 2;
-            }
-        }
-        if($list['mall_info'] ['type'] ==2){
-            if($userInfo['user_id'] ==$list['mall_info']['user_id']){
-                $list['user_info']['type'] = 2;
-            }else{
-                $list['user_info']['type'] = 1;
-            }
+        if($userInfo['user_id'] ==$list['mall_info']['user_id']){
+            $list['user_info']['type'] = 1;
+        }else{
+            $list['user_info']['type'] = 2;
         }
         return $this->response($list);
 

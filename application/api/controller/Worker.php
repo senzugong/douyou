@@ -3,13 +3,10 @@
 namespace app\api\controller;
 
 use app\common\library\Curl;
-use app\common\model\Btc;
-use app\common\model\BtcBasic;
-use app\common\model\BtcPost;
-use app\common\model\BtcSet;
 use app\common\model\GamePostdata;
 use app\common\model\GameResult;
 use app\common\model\MoneyLog;
+use app\common\model\UsdtLog;
 use app\common\model\UsdtMall;
 use app\common\model\UsdtOrder;
 use think\Db;
@@ -18,7 +15,8 @@ use Workerman\Lib\Timer;
 use app\common\model\User;
 use Workerman\Worker as WorkerMan;
 
-class Worker {
+class Worker
+{
     /**
      * @var int 定时时间
      */
@@ -26,11 +24,12 @@ class Worker {
     /**
      * @var int 进程数
      */
-    protected $processes = 1;
+    protected $processes = 2;
     /**
      * @var array 上次执行时间
      */
     protected $lastTime = [];
+
     /**
      * 架构函数
      * @access public
@@ -39,21 +38,39 @@ class Worker {
     {
         $worker = new WorkerMan();
         $worker->count = $this->processes;
-        $worker->onWorkerStart = function($worker)
-        {
-            // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-            Timer::add($this->timer, function($worker, $sup){
-                try {
-                    // 定时产生RMZ
-                    $sup->main();
-                } catch (\Exception $exception) {
-                    // 运行错误处理
-                    Log::write("HotWorker Exception Message: ".$exception->getMessage()."\tFile: ".$exception->getFile()."\tLine: ".$exception->getLine(),'error');
-                } catch (\Error $error) {
-                    // 运行错误处理
-                    Log::write("HotWorker Error Message: ".$error->getMessage()."\tFile: ".$error->getFile()."\tLine: ".$error->getLine(),'error');
-                }
-            }, [$worker, $this]);
+        $worker->onWorkerStart = function ($worker) {
+            if ($worker->id == 0) {
+                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
+                Timer::add($this->timer, function ($worker, $sup) {
+                    try {
+                        // 定时产生RMZ
+                        $sup->main();
+                    } catch (\Exception $exception) {
+                        // 运行错误处理
+                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
+                    } catch (\Error $error) {
+                        // 运行错误处理
+                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
+                    }
+                }, [$worker, $this]);
+            } elseif ($worker->id == 1) {
+                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
+                Timer::add(1.5, function ($worker, $sup) {
+                    try {
+                        // 定时产生RMZ
+                        $sup->getresult();
+                        $sup->getpoint();
+                    } catch (\Exception $exception) {
+                        // 运行错误处理
+                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
+                    } catch (\Error $error) {
+                        // 运行错误处理
+                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
+                    }
+                }, [$worker, $this]);
+            }
+
+
         };
         // 运行worker
         WorkerMan::runAll();
@@ -65,19 +82,150 @@ class Worker {
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function main() {
+    public function main()
+    {
         // 重庆时时乐
         $this->getLottery();
         // 定时处理订单
         if (!isset($this->lastTime['order']) || $this->lastTime['order'] + 60 <= time()) {
             $this->lastTime['order'] = time();
             $this->autoOrder();
-            $this->btc_result();
+        }
+
+    }
+
+    /**实时开涨跌
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getresult()
+    {
+        // url地址
+        $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+        // 获取数据
+        $data = Curl::get($url);
+        $btc_price = $data['ticker']['sell'];//当前btc价格
+        if (!$btc_price) {
+
+        }
+        $time = time();
+        $list = Db::table('dw_btc_order')->where("end_time = $time and type = 1 and  is_win = 0")->select();
+        foreach ($list as &$v) {
+            $user = Db::table('dw_users')->where(['user_id' => $v['user_id']])->find();
+            $recharge = Db::table('dw_basic_time')->where(['id' => $v['time_id']])->value('proportion');//找赔率
+            if ($btc_price > $v['buy_price']) {//中奖的人数
+                if ($v['style'] == 1) { //买涨
+                    Db::startTrans();
+                    try {
+                        $win = bcadd(bcadd($v['usdt_fee'], bcdiv($recharge, 100, 2), 4), $v['usdt_fee'], 4);
+                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win' => $win]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        // 添加日志
+                        UsdtLog::create([
+                            'user_id' => $v['user_id'],
+                            'log_content' => '实时猜涨跌',
+                            'type' => 2,
+                            'log_status' => 5,
+                            'chance_usdt' => bcadd($win, $v['usdt_fee']),
+                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'add_time' => time(),
+                        ]);
+                        // 提交
+                        Db::commit();
+                    } catch (\Exception $exception) {
+                        // 回滚
+                        Db::rollback();
+                    }
+                } else {
+                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2]);
+                }
+            } elseif ($btc_price < $v['buy_price']) {
+                if ($v['style'] == 2) { //买涨
+                    Db::startTrans();
+                    try {
+                        $win = bcadd(bcadd($v['usdt_fee'], bcdiv($recharge, 100, 2), 4), $v['usdt_fee'], 4);
+                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win' => $win]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        // 添加日志
+                        UsdtLog::create([
+                            'user_id' => $v['user_id'],
+                            'log_content' => '实时猜涨跌',
+                            'type' => 2,
+                            'log_status' => 5,
+                            'chance_usdt' => bcadd($win, $v['usdt_fee']),
+                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'add_time' => time(),
+                        ]);
+                        // 提交
+                        Db::commit();
+                    } catch (\Exception $exception) {
+                        // 回滚
+                        Db::rollback();
+                    }
+                } else {
+                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2]);
+                }
+            } else {
+                Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2]);
+            }
+
         }
     }
 
     /**
-     * 号码竞菜开奖结果
+     * @return mixed点位开奖定时
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+    public function getpoint()
+    {
+        // url地址
+        $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+        // 获取数据
+        $data = Curl::get($url);
+        $btc_price = $data['ticker']['sell'];//当前btc价格
+        if (!$btc_price) {
+
+        }
+        $list = Db::table('dw_btc_order')->where(" type = 2 and  is_win = 0")->select();
+        foreach ($list as &$v) {
+            $user = Db::table('dw_users')->where(['user_id' => $v['user_id']])->find();
+            if ($btc_price == $v['rise_price']) {
+                Db::startTrans();
+                try {
+                    $win = bcadd(bcadd($v['order_fee'], 0.8, 4),$v['order_fee'],4);
+                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win' => $win]);
+                    Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                    // 添加日志
+                    UsdtLog::create([
+                        'user_id' => $v['user_id'],
+                        'log_content' => '实时猜涨跌',
+                        'type' => 2,
+                        'log_status' => 6,
+                        'chance_usdt' => bcadd($win, $v['order_fee']),
+                        'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                        'add_time' => time(),
+                    ]);
+                    // 提交
+                    Db::commit();
+                } catch (\Exception $exception) {
+                    // 回滚
+                    Db::rollback();
+                }
+            } elseif($btc_price == $v['fill_price']) {
+                Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2]);
+            }
+        }
+    }
+
+
+
+    /**
+     * 号码竞猜开奖结果
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
@@ -122,17 +270,17 @@ class Worker {
                                 try {
                                     // 修改用户账户
                                     $user = User::get($value->user_id);
-                                    $user->dw_money = bcadd($user->dw_money, $value->win_money, 4);
+                                    $user->dw_usdt = bcadd($user->dw_usdt, $value->win_money, 4);
                                     $user->save();
                                     // 添加日志
-                                    MoneyLog::create([
-                                        'user_id'=> $user->user_id,
-                                        'log_content'=> '号码竞猜',
-                                        'type'=> 2,
-                                        'log_status'=>4,
-                                        'chance_money'=> $value->win_money,
-                                        'dw_money'=> $user->dw_money,
-                                        'add_time'=> time(),
+                                    UsdtLog::create([
+                                        'user_id' =>$user->user_id,
+                                        'log_content' => '号码竞猜',
+                                        'type' => 2,
+                                        'log_status' => 4,
+                                        'chance_usdt' => $value->win_money,
+                                        'dw_usdt' => $user->dw_usdt,
+                                        'add_time' => time(),
                                     ]);
                                     // 提交
                                     Db::commit();
@@ -153,17 +301,17 @@ class Worker {
                                 try {
                                     // 修改用户账户
                                     $user = User::get($value->user_id);
-                                    $user->dw_money = bcadd($user->dw_money, $value->win_money, 4);
+                                    $user->dw_usdt = bcadd($user->dw_usdt, $value->win_money, 4);
                                     $user->save();
                                     // 添加日志
-                                    MoneyLog::create([
-                                        'user_id'=> $user->user_id,
-                                        'log_content'=> '号码竞猜',
-                                        'type'=> 2,
-                                        'log_status'=>4,
-                                        'chance_money'=> $value->win_money,
-                                        'dw_money'=> $user->dw_money,
-                                        'add_time'=> time(),
+                                    UsdtLog::create([
+                                        'user_id' =>$user->user_id,
+                                        'log_content' => '号码竞猜',
+                                        'type' => 2,
+                                        'log_status' => 4,
+                                        'chance_usdt' => $value->win_money,
+                                        'dw_usdt' => $user->dw_usdt,
+                                        'add_time' => time(),
                                     ]);
                                     // 提交
                                     Db::commit();
@@ -171,8 +319,7 @@ class Worker {
                                     // 回滚
                                     Db::rollback();
                                 }
-                            }
-                            break;
+                            }break;
                     }
                 }
             }
@@ -214,175 +361,5 @@ class Worker {
                 Db::rollback();
             }
         }
-    }
-
-    /**btc定时开奖
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     */
-    public function btc_result()
-    {
-        //找当前分钟
-        $minute = date('i', time());
-        //后台设置的开奖分钟数
-        $min = Db::table('dw_btc_basic')->where("id =1")->find();
-        if ($minute % $min['interval_time'] == 0) {
-            //找最新的一条开奖结果
-            $btc_id = Db::table('dw_btc')->order('add_time desc')->find();
-            //找后台最新一条数据是否开启了涨跌设置
-            $result = BtcSet::where(['btc_id' => $btc_id['btc_id'] + 1])->find();
-            if ($result) {
-                //随机的涨幅度
-                $change_number = rand(10001, 10010);
-                if ($result['is_rise'] == 1) {//开启了涨的风控
-                    $rise_price = bcsub(bcdiv($change_number, 10000, 4),1,4);
-                    $data = [
-                        'btc_price' => bcadd($btc_id['btc_price'],bcmul($btc_id['btc_price'], $rise_price, 4),4),
-                        'change' => '+' . bcmul($rise_price, 100, 4),
-                        'dispaly_name' => 'okex交易所',
-                        'add_time' => time()
-                    ];
-                    $get_btc_id = Db::table('dw_btc')->insertGetId($data);
-                    $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
-                    foreach ($btc_post as &$v) {
-                        if ($v['type'] == 1) {
-                            $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
-                            $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
-                            MoneyLog::create([
-                                'user_id' => $v['user_id'],
-                                'log_content' => '猜涨跌',
-                                'type' => 2,
-                                'log_status'=>5,
-                                'chance_money' => $change_money,
-                                'dw_money' => bcadd($dw_money, $change_money, 2),
-                                'add_time' => time(),
-                            ]);
-                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $change_money, 2)]);
-                            BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
-                        } else {
-                            BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
-                        }
-                    }
-                } elseif ($result['is_fall'] == 1) {//开启了跌的风控
-                    $rise_price = bcsub(bcdiv($change_number, 10000, 4),1,4);
-                    $data = [
-                        'btc_price' =>bcsub($btc_id['btc_price'],bcmul($btc_id['btc_price'], $rise_price, 4),4),
-                        'change' => '-' . bcmul($rise_price,100,2),
-                        'dispaly_name' => 'okex交易所',
-                        'add_time' => time()
-                    ];
-                    $get_btc_id = Db::table('dw_btc')->insertGetId($data);
-                    $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
-                    foreach ($btc_post as &$v) {
-                        if ($v['type'] == 2) {
-                            $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
-                            $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
-                            MoneyLog::create([
-                                'user_id' => $v['user_id'],
-                                'log_content' => '猜涨跌',
-                                'type' => 2,
-                                'log_status'=>5,
-                                'chance_money' => $change_money,
-                                'dw_money' => bcadd($dw_money, $change_money, 2),
-                                'add_time' => time(),
-                            ]);
-                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $change_money, 2)]);
-                            BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
-                        } else {
-                            BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
-                        }
-                    }
-                }
-            } else {//自动获取开奖接口
-                    $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
-                    $data = Curl::get($url);
-                    $coin_price = $data["ticker"]['buy'];//当前的比特币的价格
-                    $change = bcsub($coin_price, $btc_id['btc_price'], 4); //幅度
-                    if ($change == 0) {
-                        $data = [
-                            'btc_price' => $result['btc_price'],
-                            'change' => 0.00,
-                            'dispaly_name' => 'okex交易所',
-                            'add_time' => time()
-                        ];
-                        $get_btc_id = Db::table('dw_btc')->insertGetId($data);
-                        $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
-                        foreach ($btc_post as &$v) {
-                            $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
-                            MoneyLog::create([
-                                'user_id' => $v['user_id'],
-                                'log_content' => '猜涨跌',
-                                'type' => 2,
-                                'log_status'=>5,
-                                'chance_money' => $v['dw_money'],
-                                'dw_money' => bcadd($dw_money, $v['dw_money'], 2),
-                                'add_time' => time(),
-                            ]);
-                            User::where(['user_id'=>$v['user_id']])->update(['dw_money'=> bcadd($dw_money, $v['dw_money'], 2)]);
-                            BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
-                        }
-                    } elseif ($change > 0) {
-                        $change = '+' . bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
-                        $data = [
-                            'btc_price' => $coin_price,
-                            'change' => $change,
-                            'dispaly_name' => 'okex交易所',
-                            'add_time' => time()
-                        ];
-                        $get_btc_id = Db::table('dw_btc')->insertGetId($data);
-                        $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
-                        foreach ($btc_post as &$v) {
-                            if ($v['type'] == 1) {
-                                $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
-                                $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
-                                MoneyLog::create([
-                                    'user_id' => $v['user_id'],
-                                    'log_content' => '猜涨跌',
-                                    'type' => 2,
-                                    'log_status'=>5,
-                                    'chance_money' => $change_money,
-                                    'dw_money' => bcadd($dw_money, $change_money, 2),
-                                    'add_time' => time(),
-                                ]);
-                                User::where(['user_id'=>$v['user_id']])->update(['dw_money'=>bcadd($dw_money, $change_money, 2)]);
-                                BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
-                            } else {
-                                BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
-                            }
-                        }
-                    } else {
-                        $change = bcmul(bcdiv($change, $btc_id['btc_price'], 4),100,2);
-                        $data = [
-                            'btc_price' => $coin_price,
-                            'change' => $change,
-                            'dispaly_name' => 'okex交易所',
-                            'add_time' => time()
-                        ];
-                        $get_btc_id = Db::table('dw_btc')->insertGetId($data);
-                        $btc_post = BtcPost::where(['btc_id' => $get_btc_id])->select();
-                        foreach ($btc_post as &$v) {
-                            if ($v['type'] == 2) {
-                                $dw_money = Db::table('dw_users')->where(['user_id' => $v['user_id']])->value('dw_money');
-                                $change_money = bcadd($v['dw_money'],bcmul($v['dw_money'], $min['odds'], 2),2);
-                                MoneyLog::create([
-                                    'user_id' => $v['user_id'],
-                                    'log_content' => '猜涨跌',
-                                    'type' => 2,
-                                    'log_status'=>5,
-                                    'chance_money' =>$change_money,
-                                    'dw_money' => bcadd($dw_money, $change_money, 2),
-                                    'add_time' => time(),
-                                ]);
-                                User::where(['user_id'=>$v['user_id']])->update(['dw_money'=>bcadd($dw_money, $change_money, 2)]);
-                                BtcPost::where(['id' => $v['id']])->update(['status' => 1]);
-                            } else {
-                                BtcPost::where(['id' => $v['id']])->update(['status' => 2]);
-                            }
-                        }
-
-                    }
-                }
-            }
     }
 }

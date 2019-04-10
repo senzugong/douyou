@@ -9,8 +9,6 @@
 namespace app\api\controller;
 
 use app\api\validate\WalletValidate;
-use app\common\model\ChangeLog;
-use app\common\model\MoneyLog;
 use app\common\model\UsdtChangelog;
 use app\common\model\UsdtLog;
 use controller\BasicApi;
