@@ -48,7 +48,7 @@ class BasicApi
         $this->request = is_null($request) ? Request::instance() : $request;
         // 安全方法请求过滤
         if (in_array(strtolower($this->request->action()), ['response', 'setcache', 'getcache', 'delcache', '_empty'])) {
-            exit($this->response('禁止访问接口安全方法！', 403)->send());
+            exit($this->response('禁止访问接口安全方法！', 203)->send());
         }
          //访问 Token 检测处理
         $this->token = $this->request->param('token');
@@ -56,11 +56,12 @@ class BasicApi
         $exclude = [
             'login',
             'register',
-            'sms'
+            'sms',
+            'notoken',
         ];
         if (!in_array(strtolower($request->controller()), $exclude)) {
             if (empty($this->token) || !$this->method_token($this->token)){
-                exit($this->response('访问TOKEN失效，请重新授权！', 403)->send());
+                exit($this->response('访问TOKEN失效，请重新授权！', 203)->send());
             }
         }
 
