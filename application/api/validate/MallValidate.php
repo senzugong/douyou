@@ -119,11 +119,11 @@ class MallValidate extends Validate
             return '该挂单USDT数量已完';
         }
         // 下单的数量要在指定范围
-        if($value < $mall_info['mix_rmb'])
+        if(bcmul($value, $mall_info['usdt_price'], 4) < $mall_info['mix_rmb'])
         {
             return '金额小于最低限制金额!';
         }
-        if($value > $mall_info['max_rmb'])
+        if(bcmul($value, $mall_info['usdt_price'], 4) > $mall_info['max_rmb'])
         {
             return '金额大于限制金额!';
         }

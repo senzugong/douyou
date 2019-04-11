@@ -12,6 +12,8 @@ use controller\BasicApi;
 use app\api\validate\RegisterValidate;
 use think\Db;
 use think\Request;
+use app\common\model\User;
+
 class Register extends BasicApi
 {
 
@@ -22,7 +24,6 @@ class Register extends BasicApi
     {
         // 验证数据
         if (!$RegisterValidate->check($request->post())) {
-
             return  $this->response( $RegisterValidate->getError() ,304);
         }
         $phone = $request->post('user_phone');//手机号码
@@ -31,11 +32,14 @@ class Register extends BasicApi
         $xl_openid = $request->post('xl_openid') ? $request->post('xl_openid'):'';
         $password =  $request->post('password');
         $sms_code = $request->post('sms_code');
+        // 验证手机验证码
         $result = $this->checkSms($phone,$sms_code,1);
         if($result != 1){
             return $this->response( $result, 406);
         }
         $password = md5(md5($password)); //密码加密方式
+        // 邀请人
+        $inviteUser = User::where(['invite_code'=> $request->post('invite_code')])->value('user_id');
         $data = [
             'user_phone' => $phone,
             'user_avatar' => 'erweima/avatar.png',
@@ -44,6 +48,8 @@ class Register extends BasicApi
             'wx_openid'=> $wx_openid,
             'qq_openid'=> $qq_openid,
             'xl_openid'=> $xl_openid,
+            'invite_user'=> $inviteUser,
+            'invite_code'=> $this->getOnlyCode(), // 邀请码
             'add_time' => time(),
             'last_ip' => $_SERVER["REMOTE_ADDR"],
         ];
@@ -66,4 +72,25 @@ class Register extends BasicApi
 
     }
 
+    /**
+     * 唯一邀请码
+     * @return string
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    protected function getOnlyCode() {
+        $code = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $length = strlen($code) - 1;
+        $onlyCode = '';
+        for ($i = 0; $i < 5; $i++) {
+            $onlyCode .= $code[mt_rand(0, $length)];
+        }
+        // 判断邀请码是否重复
+        $user = User::where(['invite_code'=> $onlyCode])->find();
+        if ($user) {
+            $onlyCode = $this->getOnlyCode();
+        }
+        return $onlyCode;
+    }
 }

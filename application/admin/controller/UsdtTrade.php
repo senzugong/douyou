@@ -8,6 +8,7 @@
 
 namespace app\admin\controller;
 
+use app\common\model\Message;
 use app\common\model\UsdtChangelog;
 use app\common\model\UsdtLog;
 use controller\BasicAdmin;
@@ -34,7 +35,7 @@ class UsdtTrade extends BasicAdmin
         $db = UsdtChangelog::alias('a')
             ->join('dw_users b', 'b.user_id=a.user_id')
             ->field('a.*,b.user_name,b.true_name')
-            ->order('status asc, a.changelog_id asc');
+            ->order('status asc, a.changelog_id desc');
         // 应用搜索条件
         foreach (['user_id', 'type', 'wallet_address', 'coin_address'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
@@ -65,37 +66,77 @@ class UsdtTrade extends BasicAdmin
         if (!$changeLog) {
             $this->error("参数错误");
         }
+        $user = $changeLog->user;
         Db::startTrans();
         try {
             // 修改状态
             $changeLog->save(['status'=> $status]);
             if ($status == 1) {
                 // 审核通过
-                if ($changeLog->type == 1) {
+                if ($changeLog['type'] == 1) {
                     // 充值
-                    $user = $changeLog->user;
                     $user->save([
-                        'dw_usdt'=> bcadd($user->dw_usdt, $changeLog->usdt_num, 4)
+                        'dw_usdt'=> bcadd($user->dw_usdt, $changeLog['usdt_num'], 4)
                     ]);
                     // 账单日志
-                    UsdtLog::create([
+                    $usdtLogId = UsdtLog::insertGetId([
                         'user_id'=> $user->user_id,
                         'log_content'=> 'USDT充值',
                         'usdt_charge_id'=> $logId,
                         'usdt_charge_type'=> 2, // 1 其他  2是充值提现
                         'type'=> 2,
-                        'chance_usdt'=> $changeLog->usdt_num,
+                        'log_status'=> 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                        'chance_usdt'=> $changeLog['usdt_num'],
                         'dw_usdt'=> $user->dw_usdt,
+                        'add_time'=> time(),
+                    ]);
+                    // 消息通知
+                    Message::create([
+                        'user_id'=> $user['user_id'],
+                        'trigger_id'=> $usdtLogId,
+                        'title'=> '您的充值已到账',
+                        'content'=> "您已成功充值{$changeLog['usdt_num']}USDT",
+                        'msg_type'=> 6,
                         'add_time'=> time(),
                     ]);
                     // 系统日志
                     LogService::write('系统管理', 'USDT充值成功');
-                } elseif ($changeLog->type == 2) {
+                } elseif ($changeLog['type'] == 2) {
+                    // 账单日志
+                    $usdtLogId = UsdtLog::insertGetId([
+                        'user_id'=> $user['user_id'],
+                        'log_content'=> 'USDT提现',
+                        'usdt_charge_id'=> $logId,
+                        'usdt_charge_type'=> 2, // 1 其他  2是充值提现
+                        'type'=> 1,
+                        'log_status'=> 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
+                        'chance_usdt'=> $changeLog['usdt_num'],
+                        'dw_usdt'=> $user->dw_usdt,
+                        'add_time'=> time(),
+                    ]);
+                    // 消息通知
+                    Message::create([
+                        'user_id'=> $user['user_id'],
+                        'trigger_id'=> $usdtLogId,
+                        'title'=> '您的提现已成功',
+                        'content'=> "您已成功提现{$changeLog['usdt_num']}USDT",
+                        'msg_type'=> 6,
+                        'add_time'=> time(),
+                    ]);
                     // 提现
                     LogService::write('系统管理', 'USDT提现成功');
                 }
             } else {
                 $name = $changeLog->type == 1 ? '充值' : '提现';
+                // 消息通知
+                Message::create([
+                    'user_id'=> $user['user_id'],
+                    'trigger_id'=> $logId,
+                    'title'=> "您的{$name}失败",
+                    'content'=> "您{$name}的{$changeLog['usdt_num']}USDT没有通过",
+                    'msg_type'=> 6,
+                    'add_time'=> time(),
+                ]);
                 LogService::write('系统管理', "USDT{$name}不通过");
             }
             // 提交

@@ -29,18 +29,29 @@ class Wave extends BasicApi
         if(!$result){
             return $this->response('已休市!',304);
         }
+
         $userInfo = $request->userInfo;
+        $count = Db::table('dw_btc_order')->where(['is_win'=>0,'user_id'=>$userInfo['user_id'],'type'=>1])->count();
+        if($count>=3){
+            return $this->response('只能发布3条订单!',304);
+        }
         $data['style'] = $request->post('style',1);//涨
         $data['type'] = 1;
         $data['buy_price'] = $request->post('buy_price');
         if(!$data['buy_price']){
             return $this->response('当前btc价格未传!',304);
         }
+        $data['time_id'] = $request->post('time_id',1);
         $data['add_time'] = time();
         $data['usdt_fee'] = $request->post('usdt_fee',50);
         $data['sx_fee'] = bcmul($data['usdt_fee'],0.02,4);
         $data['order_fee'] = $data['usdt_fee'];
         $data['user_id'] = $userInfo['user_id'];
+        $time = Db::table('dw_basic_time')->where(['id'=>$data['time_id']])->value('settletment_time');
+        $data['end_time'] = bcadd($data['add_time'],$time);
+        if($data['order_fee'] > $userInfo['dw_usdt']){
+            return $this->response('usdt余额不足',304);
+        }
         Db::startTrans();
         try {
             Db::table('dw_btc_order')->insert($data);
@@ -81,13 +92,19 @@ class Wave extends BasicApi
         if(!$data['buy_price']){
             return $this->response('当前btc价格未传!',304);
         }
-        $data['time_id'] = $request->post('time_id',1);
+        $count = Db::table('dw_btc_order')->where(['is_win'=>0,'user_id'=>$userInfo['user_id'],'type'=>2])->count();
+        if($count>=3){
+            return $this->response('只能发布3条订单!',304);
+        }
         $data['add_time'] = time();
         $data['usdt_fee'] = $request->post('usdt_fee',50);
         $data['buy_quiz'] = $request->post('buy_quiz',1);
         $usdt =  bcmul($data['usdt_fee'],$data['buy_quiz'],4);
         $data['sx_fee'] = bcmul($usdt,0.02,4);
         $data['order_fee'] = bcmul($data['usdt_fee'], $data['buy_quiz'],4);
+        if($data['order_fee'] > $userInfo['dw_usdt']){
+            return $this->response('usdt余额不足',304);
+        }
         $data['user_id'] = $userInfo['user_id'];
         $data['btc_point'] = $request->post('btc_point','3/3');
         $rise_point = explode('/',$data['btc_point']);
@@ -98,8 +115,6 @@ class Wave extends BasicApi
             $data['rise_price'] =  bcsub($data['buy_price'],$rise_point[0],4);
             $data['fill_price'] =  bcadd($data['buy_price'],$rise_point[1],4);
         }
-        $time = Db::table('dw_basic_time')->where(['id'=>$data['time_id']])->value('settletment_time');
-        $data['end_time'] = bcadd($data['add_time'],$time);
         Db::startTrans();
         try {
             Db::table('dw_btc_order')->insert($data);

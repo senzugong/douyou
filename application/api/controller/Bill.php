@@ -78,6 +78,10 @@ class Bill extends BasicApi
         }
         $bill_id = $request->post('bill_id');
         $data['bill_info'] = UsdtLog::where(['log_id'=>$bill_id])->find();
+        if ($data['bill_info']['usdt_charge_type'] == 1) {
+            // 服务费
+            $data['bill_info']['service_charge'] = bcmul($data['bill_info']['chance_usdt'], 0.02, 2);
+        }
         if($data['bill_info']['usdt_charge_type'] == 2)//充值提现
         {
            $data['change_log'] = UsdtChangelog::where(['changelog_id'=>$data['bill_info']['usdt_charge_id']])->find();

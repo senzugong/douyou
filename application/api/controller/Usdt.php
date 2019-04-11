@@ -105,6 +105,8 @@ class Usdt extends BasicApi
     public function ratio(Request $request) {
         $userInfo = $request->userInfo;
         $dw_num = $request->post('usdt_num'); //抖金数量
+        // 服务费
+        $service_charge = 0.05;
         if(!$dw_num){
             $list['wallet'] = UserWallet::where(['user_id'=>$userInfo['user_id'],'status'=>1])->field('wallet_id,wallet_type_id,wallet_address')->find();
             if(!$list){
@@ -130,6 +132,7 @@ class Usdt extends BasicApi
             $list['coin_price'] =  bcdiv($data["data"][0]['price_usd'],1,4);//当前的比特币的价格
             $list['coin_name'] = 'BTC';
             $list['need_dw'] = bcdiv($dw_num,$list['coin_price'],4);//需要支付多少
+            $list['service_charge'] = bcmul($dw_num,$service_charge,4);//手续费
             $list['coin_address'] = WalletType::where(['id'=>1,'status'=>0])->value('coin_address');
         }elseif($wallet_type_id ==2)
         {//兑换eth
@@ -138,6 +141,7 @@ class Usdt extends BasicApi
             $list['coin_price'] =  bcdiv($data["data"][0]['price_usd'],1,4);//当前的比特币的价格
             $list['coin_name'] = 'ETH';
             $list['need_dw'] = bcdiv($dw_num,$list['coin_price'],4);//需要支付多少
+            $list['service_charge'] = bcmul($dw_num,$service_charge,4);//手续费
             $list['coin_address'] = WalletType::where(['id'=>2,'status'=>0])->value('coin_address');
         }elseif($wallet_type_id ==3)
         {//兑换usdt
@@ -146,6 +150,7 @@ class Usdt extends BasicApi
             $list['coin_price'] =  bcdiv($data["data"][0]['price_usd'],1,4);//当前的比特币的价格
             $list['coin_name'] = 'USDT';
             $list['need_dw'] = $dw_num;//需要支付多少
+            $list['service_charge'] = bcmul($dw_num,0.05,4);//手续费
             $list['coin_address'] = WalletType::where(['id'=>3,'status'=>0])->value('coin_address');
         }elseif($wallet_type_id ==4)
         {//兑换rmz

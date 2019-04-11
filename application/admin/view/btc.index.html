@@ -4,34 +4,19 @@
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!--头部搜索-->
-            <section class="panel panel-padding">
-                <form class="layui-form" data-params='{"dataName":"article","action":"list"}' action="" method="get">
-                    <div class="layui-form">
-                        <div class="layui-inline">
-                            <div class="layui-input-inline">
-                                <input class="layui-input" name="set_name" placeholder="类型名称">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <button lay-submit class="layui-btn" lay-filter="search">查找</button>
-                        </div>
-                    </div>
-                </form>
-            </section>
 
             <!--列表-->
             <section class="panel panel-padding">
-                <div class="group-button">
-                    <button class="layui-btn layui-btn-small modal" data-params='{"content":".add-subcat","area":"450px,300px","title":"添加涨跌","action":"add","url":"{:url("$classuri/add")}"}'>
-                        <i class="iconfont">&#xe649;</i> 添加
-                    </button>
-                </div>
                 <div class="layui-form">
-                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"article","key":"btc_id"}'>
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"article","key":"pid"}'>
                         <thead>
                         <tr>
-                            <th width="300" class="txt-center"><span class="order" data-params='{"field":"id","sort":"asc"}'> 期数</span></th>
-                            <th>涨跌</th>
+                            <th class="txt-center">序号</th>
+                            <th>上升的点位</th>
+                            <th>下降的点位</th>
+                            <th>类型</th>
+                            <th width="80">状态</th>
+                            <th width="90">操作</th>
                         </tr>
                         </thead>
                         <tbody id="list"></tbody>
@@ -44,18 +29,31 @@
     </div>
 </div>
 <div class="add-subcat">
-    <form id="form1" class="layui-form" data-params='{"dataName":"article","key":"btc_id","bind":true,"pid":"pid"}'  method="post">
+    <form id="form1" class="layui-form" data-params='{"dataName":"article","key":"pid","bind":true,"pid":"pid"}'  method="post">
         <div class="layui-form-item">
-            <label class="layui-form-label">期数</label>
+            <label class="layui-form-label">上升的点位</label>
             <div class="layui-input-block">
-                <input type="text" name="btc_id" required jq-verify="required" jq-error="请输入类型名称" placeholder="请输入类型名称" autocomplete="off" class="layui-input ">
+                <input type="text" name="rise_point" required jq-verify="required" jq-error="请输入点位" placeholder="请输入点位" autocomplete="off" class="layui-input ">
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">涨跌</label>
+            <label class="layui-form-label">下降的点位</label>
             <div class="layui-input-block">
-                <input type="radio" name="rise_status" value="1" title="涨" checked>
-                <input type="radio" name="rise_status" value="0" title="跌">
+                <input type="text" name="fill_point" required jq-verify="required" jq-error="请输入点位" placeholder="请输入点位" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-block">
+                <input type="radio" name="type" value="1" title="吃大赔小">
+                <input type="radio" name="type" value="2" title="吃小赔大">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="status" value="1" title="开启">
+                <input type="radio" name="status" value="2" title="不开启">
             </div>
         </div>
         <div class="layui-form-item">
@@ -68,15 +66,29 @@
 <script id="list-tpl" type="text/html" data-params='{"url":"","pageid":"#page","dataName":"article"}'>
     {{# layui.each(d.list, function(index, item){ }}
     <tr>
-        <td class="txt-center">{{ item.btc_id}}</td>
+        <td class="txt-center">{{ item.pid}}</td>
+        <td>{{ item.rise_point}}</td>
+        <td>{{ item.fill_point}}</td>
         <td>
-            {{# if (item.is_rise == 1) { }}
-            涨
-            {{# } else if (item.is_fall == 1) { }}
-            跌
-            {{# } else{ }}
-            自动
+            {{# if (item.type == 1) { }}
+            吃大赔小
+            {{# } else if (item.type == 2) { }}
+            吃小赔大
             {{# } }}
+        </td>
+        <td>
+            {{# if (item.status == 1) { }}
+            开启
+            {{# } else if (item.status == 2) { }}
+            不开启
+            {{# } }}
+        </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"450px,400px","title":"编辑","data":"pid={{ item.pid }}&id={{ item.pid }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>
+                    <i class="iconfont">&#xe653;</i>编辑
+                </button>
+            </div>
         </td>
     </tr>
     {{# }); }}

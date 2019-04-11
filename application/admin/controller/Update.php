@@ -24,7 +24,7 @@ class Update extends BasicAdmin
 
     public function index() {
         // 设置页面标题
-        $this->title = 'BTC涨跌设置列表';
+        $this->title = '版本列表';
         // 获取到所有GET参数
         $get = $this->request->get();
         // 实例Query对象
@@ -52,6 +52,26 @@ class Update extends BasicAdmin
      */
     public function add() {
         return $this->_form($this->table,'index', '新增成功','');
+    }
+    public function _form_filter(&$data) {
+        if ($this->request->action() == 'add' && $this->request->isPost()) {
+            $this->apk = realpath(ROOT_PATH . 'public' . DS . 'upload/image/team/'.$data['apk']);
+            // var_dump($this->apk);die;
+            unset($data['apk']);
+        }
+    }
+    public function _form_result($result) {
+        if ($this->request->action() == 'add' && $this->request->isPost()) {
+            if ($result !== false) {
+                // 移动文件
+                if (!empty($this->apk)) {
+                    rename($this->apk, ROOT_PATH . 'web/download/douyou.apk');
+                }
+            } else {
+                // 删除文件
+                $this->apk && @unlink($this->apk);
+            }
+        }
     }
     /**
      * 删除记录

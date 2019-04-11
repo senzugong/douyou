@@ -1,6 +1,7 @@
 <?php
 
 namespace app\api\validate;
+use app\common\model\User;
 use think\Validate;
 use think\Db;
 
@@ -11,6 +12,7 @@ class RegisterValidate extends Validate
         ['user_phone','require|checkPhone|checkPhoneUnique'],
         ['sms_code','require|number|between:100000,999999'],
         ['password','require|checkPassward'],
+        ['invite_code','require|checkInviteCode'],
     ];
     protected $message = [
         'user_phone.require'=> '登录手机号不能为空!',
@@ -44,7 +46,10 @@ class RegisterValidate extends Validate
             return true;
         }
     }
-
+    protected function checkInviteCode($value) {
+        $user = User::where(['invite_code'=> $value])->find();
+        return !$user ? '邀请码不存在' : true;
+    }
 
 
 }

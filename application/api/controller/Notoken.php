@@ -10,6 +10,8 @@ namespace app\api\controller;
 
 use app\common\library\Curl;
 use app\common\model\Banner;
+use app\common\model\UsdtLog;
+use think\Cache;
 use think\Db;
 use think\Request;
 use think\Config;
@@ -23,9 +25,17 @@ class Notoken extends BasicApi
      * @return \think\Response
      */
     public function btc_now(Request $request){
-        $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
-        // 获取数据
-        $data = Curl::get($url);
+        $btc_now = Db::table('dw_btc_now')->value('btc_now');
+        $data = json_decode($btc_now,true);
+//        $number = rand(10,22);
+//        $number = bcdiv($number,100,2);
+//        $data['ticker']['sell'] = $data['ticker']['sell'],$number,2);
+        if(!$data){
+            // url地址
+            $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+            // 获取数据
+            $data = Curl::get($url);
+        }
         return $this->response($data);
     }
     /**
@@ -54,6 +64,23 @@ class Notoken extends BasicApi
         return $this->response($list);
 
     }
+
+    /**
+     * k线图的获取
+     * @param Request $request
+     * @return \think\Response
+     */
+    public function k_line(Request $request){
+        $type = $request->post('type',1);
+        $kname =  Db::table('dw_btc_klind')->where(['kid'=>$type])->value('kname');
+        $data = Db::table('dw_btc_klind')->where(['kid'=>$type])->value('kdata');
+        if(!$data){
+            $url = "http://api.zb.cn/data/v1/kline?market=btc_usdt&type=$kname&size=100";
+            // 获取数据
+            $data = Curl::get($url);
+        }
+        return $this->response(json_decode($data));
+    }
     /**首页banner
      * @param Request $request
      * @throws \think\db\exception\DataNotFoundException
@@ -71,5 +98,4 @@ class Notoken extends BasicApi
         }
         return $this->response($banner_list);
     }
-
 }

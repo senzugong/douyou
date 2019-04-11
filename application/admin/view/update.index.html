@@ -8,7 +8,7 @@
             <!--列表-->
             <section class="panel panel-padding">
                 <div class="group-button">
-                    <button class="layui-btn layui-btn-small modal" data-params='{"content":".add-subcat","area":"450px,300px","title":"添加涨跌","action":"add","url":"{:url("$classuri/add")}"}'>
+                    <button class="layui-btn layui-btn-small modal" data-params='{"content":".add-subcat","area":"450px,350px","title":"更新App包","action":"add","url":"{:url("$classuri/add")}"}'>
                         <i class="iconfont">&#xe649;</i> 添加
                     </button>
                 </div>
@@ -47,6 +47,13 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">App包</label>
+            <div class="layui-input-block">
+                <input type="file" name="file" class="layui-upload-file" lay-type="file">
+                <input type="hidden" name="apk">
+            </div>
+        </div>
+        <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
             </div>
@@ -76,6 +83,40 @@
     {{# }); }}
 </script>
 {include file="public/bottom"}
+<style type="text/css">
+    .upload-box{
+        line-height: 20px;
+        height: 20px;
+        width: 120px;
+    }
+</style>
 <script>
     layui.use('list');
+    layui.define(['jquery','jqform'], function(exports) {
+        var $ = layui.jquery,form = layui.jqform;
+
+        setTimeout(function () {
+            //执行实例
+            layui.upload({
+                url: '/admin/upload/uploadTeamImage',
+                before: function (input) {
+                    box = $(input).parent('form').parent('div').parent('.layui-input-block');
+                    if (box.next('div').length > 0) {
+                        box.next('div').html('<div class="imgbox"><p>上传中...</p></div>');
+                    } else {
+                        box.after('<div class="layui-input-block"><div class="upload-box"><p>上传中...</p></div></div>');
+                    }
+                },
+                success: function (res, input) {
+                    if (res.status == 1) {
+                        box.next('div').find('div.upload-box').html('<span>上传成功</span>');
+                        box.find('input[type=hidden]').val(res.image_name);
+                        form.check(box.find('input[type=hidden]'));
+                    } else {
+                        box.next('div').find('p').html('上传失败...')
+                    }
+                }
+            });
+        }, 500)
+    })
 </script>

@@ -8,11 +8,10 @@
 namespace app\api\controller;
 use app\api\validate\UserSuggest;
 use app\common\model\Examine;
-use app\common\model\MoneyLog;
+use app\common\model\Message;
 use app\common\model\Token;
 use app\common\model\UsdtChangelog;
 use app\common\model\UsdtLog;
-use app\common\model\UsdtMall;
 use app\common\model\UsdtOrder;
 use app\common\model\UserProposal;
 use app\common\model\UserWallet;
@@ -76,6 +75,8 @@ class User extends BasicApi
             $fetch_freeze = bcadd($fetch_freeze, $val['usdt_num'], 2);
         }
         $userInfo['fetch_freeze'] = $fetch_freeze;
+        // 未读消息条数
+        $userInfo['message_count'] = Message::where(['user_id'=> $userInfo['user_id'], 'is_read'=> 0])->count();
         return $this->response($userInfo);
     }
 
