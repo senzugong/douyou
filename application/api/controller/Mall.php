@@ -735,6 +735,8 @@ class Mall extends BasicApi
                 return $this->response('获取类型错误', 306);
                 break;
         }
+        // 订单时间
+        $bank['order_time'] = UsdtOrder::where(['order_id'=> $request->post('order_id')])->value('add_time');
         return $this->response($bank);
     }
 }
