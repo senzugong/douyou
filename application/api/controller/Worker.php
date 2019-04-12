@@ -23,7 +23,7 @@ class Worker
     /**
      * @var int 进程数
      */
-    protected $processes = 5;
+    protected $processes = 3;
     /**
      * @var array 上次执行时间
      */
@@ -72,41 +72,7 @@ class Worker
                     try {
                         // 定时产生RMZ
                         $sup->getpoint();
-                        $sup->btc();
-                    } catch (\Exception $exception) {
-                        // 运行错误处理
-                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
-                    } catch (\Error $error) {
-                        // 运行错误处理
-                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
-                    }
-                }, [$worker, $this]);
-            }elseif($worker->id ==3){
-                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-                Timer::add(60, function ($worker, $sup) {
-                    try {
-                        // 定时
-                        $sup->kline();
-                        $sup->kline1();
-                        $sup->kline2();
-                        $sup->kline3();
 
-                    } catch (\Exception $exception) {
-                        // 运行错误处理
-                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
-                    } catch (\Error $error) {
-                        // 运行错误处理
-                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
-                    }
-                }, [$worker, $this]);
-            }elseif($worker->id == 4){
-                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-                Timer::add(200, function ($worker, $sup) {
-                    try {
-                        $sup->kline4();
-                        $sup->kline5();
-                        $sup->kline6();
-                        $sup->kline7();
                     } catch (\Exception $exception) {
                         // 运行错误处理
                         Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
@@ -116,7 +82,41 @@ class Worker
                     }
                 }, [$worker, $this]);
             }
-
+//elseif($worker->id ==3){
+//                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
+//                Timer::add(61, function ($worker, $sup) {
+//                    try {
+//                        // 定时
+//                        $sup->kline();
+//                        $sup->kline1();
+//                        $sup->kline2();
+//                        $sup->kline3();
+//
+//                    } catch (\Exception $exception) {
+//                        // 运行错误处理
+//                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
+//                    } catch (\Error $error) {
+//                        // 运行错误处理
+//                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
+//                    }
+//                }, [$worker, $this]);
+//            }elseif($worker->id == 4){
+//                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
+//                Timer::add(300, function ($worker, $sup) {
+//                    try {
+////                        $sup->kline4();
+////                        $sup->kline5();
+////                        $sup->kline6();
+////                        $sup->kline7();
+//                    } catch (\Exception $exception) {
+//                        // 运行错误处理
+//                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
+//                    } catch (\Error $error) {
+//                        // 运行错误处理
+//                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
+//                    }
+//                }, [$worker, $this]);
+//            }
 
         };
         // 运行worker
@@ -131,6 +131,7 @@ class Worker
      */
     public function main()
     {
+        $this->getbtc();
         // 重庆时时乐
         $this->getLottery();
         // 定时处理订单
@@ -139,95 +140,98 @@ class Worker
             $this->autoOrder();
         }
     }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1min&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//       Db::table('dw_btc_klind')->where(['kname'=>'1min'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline1(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=5min&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'5min'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline2(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=15min&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'15min'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline3(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=30min&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'30min'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline4(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1day&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'1day'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline5(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1week&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'1week'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline6(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1hour&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'1hour'])->update(['kdata'=>json_encode($data)]);
+//    }
+//    /**
+//     * 定时获取k线图
+//     */
+//    public function kline7(){
+//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=4hour&size=100';
+//        // 获取数据
+//        $data = Curl::get($url);
+//        Db::table('dw_btc_klind')->where(['kname'=>'4hour'])->update(['kdata'=>json_encode($data)]);
+//    }
     /**
-     * 定时获取k线图
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
      */
-    public function kline(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1min&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-       Db::table('dw_btc_klind')->where(['kname'=>'1min'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline1(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=5min&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'5min'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline2(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=15min&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'15min'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline3(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=30min&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'30min'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline4(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1day&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'1day'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline5(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1week&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'1week'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline6(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1hour&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'1hour'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 定时获取k线图
-     */
-    public function kline7(){
-        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=4hour&size=100';
-        // 获取数据
-        $data = Curl::get($url);
-        Db::table('dw_btc_klind')->where(['kname'=>'4hour'])->update(['kdata'=>json_encode($data)]);
-    }
-    /**
-     * 封盘时的btc价格
-     */
-    public function btc(){
-        $time  = strtotime(date('Y-m-d',time()));
-        if($time == time()){
-            // url地址
+    public function getbtc(){
+        $result = Db::table('dw_btc')->whereTime('add_time','today')->find();
+        if(!$result) {
             $btc_now = Db::table('dw_btc_now')->value('btc_now');
-            $data = json_decode($btc_now,true);
+            $data = json_decode($btc_now, true);
             $btc_price = $data['ticker']['sell'];
-            if(!$btc_price){
+            if (!$btc_price) {
                 $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
                 // 获取数据
                 $data = Curl::get($url);
                 $btc_price = $data['ticker']['sell'];//当前btc价格
             }
-            Db::table('dw_btc')->update(['btc_price'=>$btc_price,'add_time'=>$time]);
+            Db::table('dw_btc')->where(['btc_id'=>1])->update(['btc_price' => $btc_price, 'add_time' => time()]);
         }
     }
     /**实时开涨跌
@@ -243,16 +247,19 @@ class Worker
         $data = Curl::get($url);
         $btc_price = $data['ticker']['sell'];//当前btc价格
         $now = Db::table('dw_btc_now')->find();
-        if(!$now){
-            Db::table('dw_btc_now')->insert(['btc_now'=>json_encode($data),'add_time'=>time()]);
-        }else{
-            Db::table('dw_btc_now')->where(['id'=>$now['id']])->update(['btc_now'=>json_encode($data),'add_time'=>time()]);
-        }
-        $btc_now = Db::table('dw_btc_now')->value('btc_now');
-        $data = json_decode($btc_now,true);
         if(!$btc_price){
+            $btc_now = Db::table('dw_btc_now')->value('btc_now');
+            $data = json_decode($btc_now,true);
             $btc_price = $data['ticker']['sell'];
+        }else{
+            $result = $this->is_controller($btc_price);
+            if($result){
+                $data['ticker']['sell'] = $result;
+            }else{
+                $btc_price = $btc_price;//当前btc价格
+            }
         }
+        Db::table('dw_btc_now')->where(['id'=>$now['id']])->update(['btc_now'=>json_encode($data),'add_time'=>time()]);
         $time = time();
         $list = Db::table('dw_btc_order')->where("end_time = $time and type = 1 and  is_win = 0")->select();
         foreach ($list as &$v) {
@@ -396,10 +403,6 @@ class Worker
 
             }
         }
-
-
-
-
     /**
      * 号码竞猜开奖结果
      * @throws \think\db\exception\DataNotFoundException
@@ -536,6 +539,72 @@ class Worker
                 // 回滚
                 Db::rollback();
             }
+        }
+    }
+    /**
+     * @return 是否开启了风控
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function is_controller($btc_price){
+        //开启了滑点风控
+        $result = Db::table('dw_btc_config')->where("status = 1")->find();
+        if($result){
+            $time = time()- rand(1,10);
+            //吃大赔小
+            $list = Db::table('dw_btc_order')->where("is_win = 0 and add_time <= $time  and type=2")->select();
+            if(!$list){
+                return 0;
+            }
+            $rise = Db::table('dw_btc_order')->where(" type=2 and is_win = 0 and add_time <= $time  and style = 1")->sum('order_fee');
+            $fill = Db::table('dw_btc_order')->where(" type=2 and is_win = 0 and add_time <= $time  and style = 2")->sum('order_fee');
+            if($rise == 0 && $fill != 0 ){
+                $win_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('fill_price desc')->value('rise_price');
+                $num = bcdiv(round(80, 120),100,4);
+                $btc_price1 = bcadd($btc_price,$num,4);
+                if($btc_price1 <= $win_price){
+                    return $btc_price;
+                }else{
+                    return $btc_price1;
+                }
+            }elseif($rise != 0 && $fill == 0 ){
+                $win_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time and style = 1")->order('rise_price desc')->value('rise_price');
+                $num = bcdiv(round(80, 120),100,4);
+                $btc_price1 = bcsub($btc_price,$num,4);
+                if($btc_price1 >= $win_price){
+                    return $btc_price;
+                }else{
+                    return $btc_price1;
+                }
+            }
+            if($result['type'] == 1){
+            if($rise > $fill){//吃大赔小
+                $btc_price = Db::table('dw_btc_order')->where("type=2  and is_win = 0 and add_time <= $time and style = 1")->order('rise_price desc')->value('fill_price');
+                $num = bcdiv(round(80, 120),100,4);
+                $btc_price = bcsub($btc_price,$num,4);
+                return $btc_price;
+            }else{
+                $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('fill_price desc')->value('fill_price');
+                $num = bcdiv(round(80, 120),100,4);
+                $btc_price = bcadd($btc_price,$num,4);
+                return $btc_price;
+            }
+            }else{//吃小赔大
+                if($rise > $fill){
+                    $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style =1")->order('fill_price desc')->value('rise_price');
+                    $num = bcdiv(round(80, 120),100,4);
+                    $btc_price = bcadd($btc_price,$num,4);
+                    return $btc_price;
+                }else{
+                    $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('rise_price desc')->value('rise_price');
+                    $num = bcdiv(round(80, 120),100,4);
+                    $btc_price = bcsub($btc_price,$num,4);
+                    return $btc_price;
+                }
+            }
+        }else{
+            return 0;
         }
     }
 }

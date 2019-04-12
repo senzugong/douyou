@@ -56,11 +56,17 @@ class Notoken extends BasicApi
         }
         //累计竞猜人数
         $list['user_count'] =   Db::table('dw_btc_order')->count();
+        $list['btc_bouns'] = Db::table('dw_btc_bonus')->value('bonus');
         $list['guess'] = Db::table('dw_usdt_log')->alias('a')
             ->join('dw_users b','a.user_id = b.user_id')
-            ->where("a.type=2 and log_status IN (3,4,5,6)")
-            ->field('a.chance_usdt,a.log_status,b.user_name')
+            ->where("a.type=2 and a.log_status IN (3,4,5,6)")
+            ->field('a.chance_usdt,a.log_status,b.user_name,b.user_phone')
             ->limit(20)->order('a.log_id desc')->select();
+        foreach ($list['guess'] as &$v){
+            if(!$v['user_name']){
+                    $v['user_name'] = substr_replace($v['user_phone'] , '****', 3, 4);
+            }
+        }
         return $this->response($list);
 
     }

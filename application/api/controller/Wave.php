@@ -47,6 +47,8 @@ class Wave extends BasicApi
         $data['sx_fee'] = bcmul($data['usdt_fee'],0.02,4);
         $data['order_fee'] = $data['usdt_fee'];
         $data['user_id'] = $userInfo['user_id'];
+        $data['lucky_number'] = rand(100,999);
+        $data['lucky_usdt'] = $this->lucky($data['lucky_number']);
         $time = Db::table('dw_basic_time')->where(['id'=>$data['time_id']])->value('settletment_time');
         $data['end_time'] = bcadd($data['add_time'],$time);
         if($data['order_fee'] > $userInfo['dw_usdt']){
@@ -56,6 +58,21 @@ class Wave extends BasicApi
         try {
             Db::table('dw_btc_order')->insert($data);
             $fee = bcadd($data['usdt_fee'],$data['sx_fee'],4);
+            $bouns = Db::table('dw_btc_bonus')->value('bonus');
+            Db::table('dw_btc_bonus')->update(['bouns'=>bcadd($bouns,bcmul($data['sx_fee'],0.5,4),4)]);
+            if($data['lucky_usdt']){
+                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,bcmul($data['sx_fee'],0.5,4), 4)]);
+                // 添加日志
+                UsdtLog::create([
+                    'user_id'=> $userInfo->user_id,
+                    'log_content'=> '幸运数奖励',
+                    'type'=> 1,
+                    'log_status'=>5,
+                    'chance_usdt'=>bcmul($data['sx_fee'],0.5,4),
+                    'dw_usdt'=> $userInfo->dw_usdt,
+                    'add_time'=> time(),
+                ]);
+            }
             $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $fee, 4)]);
             // 添加日志
             UsdtLog::create([
@@ -102,6 +119,8 @@ class Wave extends BasicApi
         $usdt =  bcmul($data['usdt_fee'],$data['buy_quiz'],4);
         $data['sx_fee'] = bcmul($usdt,0.02,4);
         $data['order_fee'] = bcmul($data['usdt_fee'], $data['buy_quiz'],4);
+        $data['lucky_number'] = rand(100,999);
+        $data['lucky_usdt'] = $this->lucky($data['lucky_number']);
         if($data['order_fee'] > $userInfo['dw_usdt']){
             return $this->response('usdt余额不足',304);
         }
@@ -120,12 +139,27 @@ class Wave extends BasicApi
             Db::table('dw_btc_order')->insert($data);
             $fee = bcadd($usdt,$data['sx_fee'],4);
             $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $fee, 4)]);
+            $bouns = Db::table('dw_btc_bonus')->value('bonus');
+            Db::table('dw_btc_bonus')->where(['bid'=>1])->update(['bonus'=>bcadd($bouns,bcmul($data['sx_fee'],0.5,4),4)]);
+            if($data['lucky_usdt']){
+                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,bcmul($data['sx_fee'],0.5,4), 4)]);
+                // 添加日志
+                UsdtLog::create([
+                    'user_id'=> $userInfo->user_id,
+                    'log_content'=> '幸运数奖励',
+                    'type'=> 1,
+                    'log_status'=>6,
+                    'chance_usdt'=>bcmul($data['sx_fee'],0.5,4),
+                    'dw_usdt'=> $userInfo->dw_usdt,
+                    'add_time'=> time(),
+                ]);
+            }
             // 添加日志
             UsdtLog::create([
                 'user_id'=> $userInfo->user_id,
-                'log_content'=> '实时猜涨跌',
+                'log_content'=> '点位猜涨跌',
                 'type'=> 1,
-                'log_status'=>5,
+                'log_status'=>6,
                 'chance_usdt'=> $fee,
                 'dw_usdt'=> $userInfo->dw_usdt,
                 'add_time'=> time(),
@@ -136,10 +170,54 @@ class Wave extends BasicApi
         } catch (\Exception $exception) {
             // 回滚
             Db::rollback();
-            return $this->response('下单失败',304);
+            return $this->response('下单失败'.$exception->getMessage(),304);
         }
     }
 
+    public function lucky($lucky_number){
+        $bouns = Db::table('dw_btc_bonus')->value('bonus');
+        if($lucky_number == 111){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>1])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 222){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>2])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 333){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>3])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 444){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>4])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 555){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>5])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 666){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>6])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 777){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>7])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 888){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>8])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }elseif($lucky_number == 999){
+            $percent = Db::table('dw_bonus_set')->where(['id'=>9])->value('percent');
+            $lucky_usdt = bcmul($bouns,bcdiv($percent,100,4),4);
+            return $lucky_usdt;
+        }else{
+
+        return 0;
+        }
+
+    }
     /**
      * @param Request $request持仓记录
      * @return \think\Response
@@ -150,8 +228,9 @@ class Wave extends BasicApi
     public  function order_list(Request $request){
         $userInfo = $request->userInfo;
         $type = $request->post('type',1);
-        $list = Db::table('dw_btc_order')->where(['user_id'=>$userInfo['user_id'],'type'=>$type,'is_win'=>0])->order('order_id desc')->select();
-        foreach($list as &$v){
+        $list['order_list'] = Db::table('dw_btc_order')->where(['user_id'=>$userInfo['user_id'],'type'=>$type,'is_win'=>0])->order('order_id desc')->select();
+        $list['btc_bonus'] = Db::table('dw_btc_bonus')->value('bonus');
+        foreach($list['order_list'] as &$v){
           $v['add_time'] = $this->getTime($v['add_time']);
         }
         return $this->response($list);
@@ -192,6 +271,16 @@ class Wave extends BasicApi
      }else{
          $list['quiz'] = Db::table('dw_basic_quiz')->field('id,quiz_num')->select();
          $list['point'] = Db::table('dw_basic_point')->select();
+         $list['raward_list'] =Db::table('dw_usdt_log')->alias('a')
+             ->join('dw_users b','a.user_id = b.user_id')
+             ->where("a.log_content = '幸运数奖励' and a.log_status =6")
+             ->field('a.chance_usdt,a.log_status,b.user_name,b.user_phone')
+             ->limit(20)->order('a.log_id desc')->select();
+         foreach ( $list['raward_list'] as &$v){
+             if(!$v['user_name']){
+                 $v['user_name'] = substr_replace($v['user_phone'] , '****', 3, 4);
+             }
+         }
      }
      $list['recharge'] = 2;
      $list['btc_price'] = Db::table('dw_btc')->order('btc_id desc')->value('btc_price');

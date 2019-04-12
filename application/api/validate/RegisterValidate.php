@@ -17,8 +17,8 @@ class RegisterValidate extends Validate
     protected $message = [
         'user_phone.require'=> '登录手机号不能为空!',
         'sms_code.require'=> '短信验证码不能为空!',
-        'sms_code.number'=> '短信验证码类型错误!',
-        'sms_code.between'=> '短信验证码类型错误!',
+        'sms_code.number'=> '短信验证码错误!',
+        'sms_code.between'=> '短信验证码错误!',
         'password.require' => '密码不能为空!',
     ];
     protected function checkPhone($value){
