@@ -45,7 +45,7 @@ class Mall extends BasicApi
             ->join('dw_users b', 'a.user_id = b.user_id')
             ->where("a.status IN (0,1)")
             ->field('b.user_name,b.user_avatar,a.*')
-            ->order('a.usdt_price asc')
+            ->order('a.add_time desc')
             ->page($page)
             ->select();
         foreach($list['mall_list'] as &$v){
@@ -76,9 +76,9 @@ class Mall extends BasicApi
         $mall_id = $request->post('mall_id');
         $money = $request->post('money');
         $userInfo = $request->userInfo;
-        if($userInfo['is_examine'] !=1){
-            return $this->response('未完成高级认证!', 304);
-        }
+//        if($userInfo['is_examine'] !=1){
+//            return $this->response('未完成高级认证!', 304);
+//        }
         if(!$userInfo['pay_password']){
             return $this->response('请先设置支付密码!', 304);
         }
@@ -304,9 +304,9 @@ class Mall extends BasicApi
             return  $this->response( $mallValidate->getError() ,304);
         }
         $userInfo = $request->userInfo;
-        if($userInfo['is_examine'] !=1){
-            return $this->response('未完成高级认证!', 304);
-        }
+//        if($userInfo['is_examine'] !=1){
+//            return $this->response('未完成高级认证!', 304);
+//        }
         if(!$userInfo['pay_password']){
             return $this->response('请先设置支付密码!', 304);
         }
@@ -546,7 +546,7 @@ class Mall extends BasicApi
                 return $this->response();
             }catch (\Exception $exception){
                 Db::rollback();
-                return $this->response('取消失败!'.$exception->getMessage(),304);
+                return $this->response('取消失败!',304);
             }
         }
 

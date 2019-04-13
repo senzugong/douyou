@@ -131,7 +131,7 @@ class UsdtTrade extends BasicAdmin
                 // 审核没有通过
                 $name = $changeLog->type == 1 ? '充值' : '提现';
                 // 手续费
-                $money = bcmul($changeLog['usdt_num'], 1.05, 4);
+                $money = round(bcmul($changeLog['usdt_num'], 1.05, 6), 4);
                 // 返还USDT
                 $user->save([
                     'dw_usdt'=> bcadd($user->dw_usdt, $money, 4)

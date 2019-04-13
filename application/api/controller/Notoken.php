@@ -56,6 +56,11 @@ class Notoken extends BasicApi
         }
         //累计竞猜人数
         $list['user_count'] =   Db::table('dw_btc_order')->count();
+        if(!$list['user_count']){
+            $list['user_count'] = 128;
+        }else{
+            $list['user_count'] = 128 +  $list['user_count'];
+        }
         $list['btc_bouns'] = Db::table('dw_btc_bonus')->value('bonus');
         $list['guess'] = Db::table('dw_usdt_log')->alias('a')
             ->join('dw_users b','a.user_id = b.user_id')

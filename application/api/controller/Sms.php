@@ -11,6 +11,7 @@ namespace app\api\controller;
 use app\common\model\Sms as massage;
 use app\api\validate\SmsValidate;
 use controller\BasicApi;
+use think\Db;
 use think\Request;
 use think\response\Json;
 use think\Config;
@@ -33,6 +34,12 @@ class Sms extends BasicApi
         }
         $phone = $request->post('phone');
         $type = $request->post('type');
+        if($type != 1 ){
+            $result = Db::table('dw_users')->where(['user_phone'=>$phone])->find();
+            if(!$result){
+                return $this->response('该手机号码未注册!', 406);
+            }
+        }
         if (Config::get('SMS_DEBUG')) {
             $code = substr($phone,-6); //手机号后6位
         } else {

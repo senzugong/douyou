@@ -47,7 +47,8 @@ class Wave extends BasicApi
         $data['sx_fee'] = bcmul($data['usdt_fee'],0.02,4);
         $data['order_fee'] = $data['usdt_fee'];
         $data['user_id'] = $userInfo['user_id'];
-        $data['lucky_number'] = rand(100,999);
+//        $data['lucky_number'] = rand(100,999);
+        $data['lucky_number'] = 222;
         $data['lucky_usdt'] = $this->lucky($data['lucky_number']);
         $time = Db::table('dw_basic_time')->where(['id'=>$data['time_id']])->value('settletment_time');
         $data['end_time'] = bcadd($data['add_time'],$time);
@@ -61,7 +62,9 @@ class Wave extends BasicApi
             $bouns = Db::table('dw_btc_bonus')->value('bonus');
             Db::table('dw_btc_bonus')->update(['bouns'=>bcadd($bouns,bcmul($data['sx_fee'],0.5,4),4)]);
             if($data['lucky_usdt']){
-                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,bcmul($data['sx_fee'],0.5,4), 4)]);
+                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,$data['lucky_usdt'], 4)]);
+                $bouns1 = Db::table('dw_btc_bonus')->value('bonus');
+                Db::table('dw_btc_bonus')->where(['bid'=>1])->update(['bonus'=>bcsub($bouns1,$data['lucky_usdt'],4)]);
                 // 添加日志
                 UsdtLog::create([
                     'user_id'=> $userInfo->user_id,
@@ -77,7 +80,7 @@ class Wave extends BasicApi
             // 添加日志
             UsdtLog::create([
                 'user_id'=> $userInfo->user_id,
-                'log_content'=> '实时猜涨跌',
+                'log_content'=> '时间模式',
                 'type'=> 1,
                 'log_status'=>5,
                 'chance_usdt'=> $fee,
@@ -86,7 +89,7 @@ class Wave extends BasicApi
             ]);
             // 提交
             Db::commit();
-            return $this->response();
+            return $this->response(['lucky_number'=>$data['lucky_number'],'lucky_usdt'=>$data['lucky_usdt']]);
         } catch (\Exception $exception) {
             // 回滚
             Db::rollback();
@@ -118,8 +121,9 @@ class Wave extends BasicApi
         $data['buy_quiz'] = $request->post('buy_quiz',1);
         $usdt =  bcmul($data['usdt_fee'],$data['buy_quiz'],4);
         $data['sx_fee'] = bcmul($usdt,0.02,4);
-        $data['order_fee'] = bcmul($data['usdt_fee'], $data['buy_quiz'],4);
+        $data['order_fee'] = $usdt;
         $data['lucky_number'] = rand(100,999);
+//        $data['lucky_number'] = 777;
         $data['lucky_usdt'] = $this->lucky($data['lucky_number']);
         if($data['order_fee'] > $userInfo['dw_usdt']){
             return $this->response('usdt余额不足',304);
@@ -137,36 +141,38 @@ class Wave extends BasicApi
         Db::startTrans();
         try {
             Db::table('dw_btc_order')->insert($data);
-            $fee = bcadd($usdt,$data['sx_fee'],4);
+            $fee = bcadd($usdt,$data['sx_fee'],4);//用户要扣的金额
             $userInfo->save(['dw_usdt'=> bcsub($userInfo->dw_usdt, $fee, 4)]);
-            $bouns = Db::table('dw_btc_bonus')->value('bonus');
-            Db::table('dw_btc_bonus')->where(['bid'=>1])->update(['bonus'=>bcadd($bouns,bcmul($data['sx_fee'],0.5,4),4)]);
-            if($data['lucky_usdt']){
-                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,bcmul($data['sx_fee'],0.5,4), 4)]);
-                // 添加日志
-                UsdtLog::create([
-                    'user_id'=> $userInfo->user_id,
-                    'log_content'=> '幸运数奖励',
-                    'type'=> 1,
-                    'log_status'=>6,
-                    'chance_usdt'=>bcmul($data['sx_fee'],0.5,4),
-                    'dw_usdt'=> $userInfo->dw_usdt,
-                    'add_time'=> time(),
-                ]);
-            }
             // 添加日志
             UsdtLog::create([
                 'user_id'=> $userInfo->user_id,
-                'log_content'=> '点位猜涨跌',
+                'log_content'=> '区间模式',
                 'type'=> 1,
                 'log_status'=>6,
                 'chance_usdt'=> $fee,
                 'dw_usdt'=> $userInfo->dw_usdt,
                 'add_time'=> time(),
             ]);
+            $bouns = Db::table('dw_btc_bonus')->value('bonus');
+            Db::table('dw_btc_bonus')->where(['bid'=>1])->update(['bonus'=>bcadd($bouns,bcmul($data['sx_fee'],0.5,4),4)]);
+            if($data['lucky_usdt']){
+                $userInfo->save(['dw_usdt'=> bcadd($userInfo->dw_usdt,$data['lucky_usdt'], 4)]);
+                $bouns1 = Db::table('dw_btc_bonus')->value('bonus');
+                Db::table('dw_btc_bonus')->where(['bid'=>1])->update(['bonus'=>bcsub($bouns1,$data['lucky_usdt'],4)]);
+                // 添加日志
+                UsdtLog::create([
+                    'user_id'=> $userInfo->user_id,
+                    'log_content'=> '幸运数奖励',
+                    'type'=> 2,
+                    'log_status'=>6,
+                    'chance_usdt'=>$data['lucky_usdt'],
+                    'dw_usdt'=> $userInfo->dw_usdt,
+                    'add_time'=> time(),
+                ]);
+            }
             // 提交
             Db::commit();
-            return $this->response();
+            return $this->response(['lucky_number'=>$data['lucky_number'],'lucky_usdt'=>$data['lucky_usdt']]);
         } catch (\Exception $exception) {
             // 回滚
             Db::rollback();
@@ -226,9 +232,15 @@ class Wave extends BasicApi
      * @throws \think\exception\DbException
      */
     public  function order_list(Request $request){
+        $time = time()-1;
+        $time1 = time() +1;
         $userInfo = $request->userInfo;
         $type = $request->post('type',1);
         $list['order_list'] = Db::table('dw_btc_order')->where(['user_id'=>$userInfo['user_id'],'type'=>$type,'is_win'=>0])->order('order_id desc')->select();
+        $list['result_order'] = Db::table('dw_btc_order')->where(" user_id ={$userInfo['user_id']} and type = 2 and end_time = $time")->find();
+        if(!$list['order_list'] || !$list['result_order']){
+           $list['result_order'] = Db::table('dw_btc_order')->where("is_win !=0 and user_id ={$userInfo['user_id']} and type = 2 and end_time >= $time and end_time <=$time1 ")->select();
+       }
         $list['btc_bonus'] = Db::table('dw_btc_bonus')->value('bonus');
         foreach($list['order_list'] as &$v){
           $v['add_time'] = $this->getTime($v['add_time']);

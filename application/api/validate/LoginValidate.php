@@ -40,9 +40,13 @@ class LoginValidate extends Validate
     protected function checkPassword($value,$rule,$data)
     {
         $password = md5(md5($value));
+        $userInfo1 = User::where(['user_phone'=>$data['user_phone']])->find();
+        if(!$userInfo1){
+            return '该账号未注册!';
+        }
         $userInfo = User::where(['login_password'=>$password,'user_phone'=>$data['user_phone']])->find();
         if (!$userInfo) {
-            return '用户密码错误!';
+            return '密码错误!';
         }else{
             return true;
         }

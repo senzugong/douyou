@@ -99,7 +99,7 @@ class Index extends BasicApi
             // 添加日志1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
            UsdtLog::create([
                 'user_id'=> $userInfo->user_id,
-                'log_content'=> '签到',
+                'log_content'=> '蚪游签到',
                 'type'=> 2,
                 'log_status'=> 7,
                 'chance_usdt'=> $rawardSet->raward_money,

@@ -271,15 +271,15 @@ class Worker
                     try {
                         $win = bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
                         Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
                             'user_id' => $v['user_id'],
-                            'log_content' => '实时猜涨跌',
+                            'log_content' => '时间模式',
                             'type' => 2,
                             'log_status' => 5,
                             'chance_usdt' => $win,
-                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
                             'add_time' => time(),
                         ]);
                         // 提交
@@ -297,15 +297,15 @@ class Worker
                     try {
                         $win =bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
                         Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
                             'user_id' => $v['user_id'],
-                            'log_content' => '实时猜涨跌',
+                            'log_content' => '时间模式',
                             'type' => 2,
                             'log_status' => 5,
                             'chance_usdt' => $win,
-                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
                             'add_time' => time(),
                         ]);
                         // 提交
@@ -352,15 +352,15 @@ class Worker
                     try {
                         $win = bcmul($v['order_fee'], 0.8, 4);
                         Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$btc_price, 'end_time' => time()]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
                             'user_id' => $v['user_id'],
-                            'log_content' => '实时猜涨跌',
+                            'log_content' => '区间模式',
                             'type' => 2,
                             'log_status' => 6,
                             'chance_usdt' => $win,
-                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'dw_usdt' =>bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
                             'add_time' => time(),
                         ]);
                         // 提交
@@ -379,15 +379,15 @@ class Worker
                     try {
                         $win =bcmul($v['order_fee'], 0.8, 4);
                         Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$btc_price, 'end_time' => time()]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd($win, $user['dw_usdt'], 4)]);
+                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
                             'user_id' => $v['user_id'],
-                            'log_content' => '实时猜涨跌',
+                            'log_content' => '区间模式',
                             'type' => 2,
                             'log_status' => 6,
                             'chance_usdt' =>$win,
-                            'dw_usdt' => bcadd($win, $user['dw_usdt'], 4),
+                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
                             'add_time' => time(),
                         ]);
                         // 提交
