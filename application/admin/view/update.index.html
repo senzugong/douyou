@@ -99,6 +99,7 @@
             //执行实例
             layui.upload({
                 url: '/admin/upload/uploadTeamImage',
+                ext: 'apk|ipa',
                 before: function (input) {
                     box = $(input).parent('form').parent('div').parent('.layui-input-block');
                     if (box.next('div').length > 0) {

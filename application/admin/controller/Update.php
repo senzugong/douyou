@@ -12,6 +12,7 @@ use controller\BasicAdmin;
 use service\DataService;
 use service\LogService;
 use think\Db;
+use think\Config;
 
 /**
  * Class Update
@@ -28,7 +29,7 @@ class Update extends BasicAdmin
         // 获取到所有GET参数
         $get = $this->request->get();
         // 实例Query对象
-        $db = Db::name($this->table);
+        $db = Db::name($this->table)->order('id desc');
         // 应用搜索条件
         foreach (['set_name'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
@@ -56,6 +57,18 @@ class Update extends BasicAdmin
     public function _form_filter(&$data) {
         if ($this->request->action() == 'add' && $this->request->isPost()) {
             $this->apk = realpath(ROOT_PATH . 'public' . DS . 'upload/image/team/'.$data['apk']);
+            $apkExt = substr($data['apk'], strrpos($data['apk'], '.')+1);
+
+            if ($apkExt == 'apk') {
+                $name = 'douyou.apk';
+            } elseif ($apkExt == 'ipa') {
+                $name = 'Payload.ipa';
+            } else {
+                @unlink($this->apk);
+                $this->error('只能上传apk、ipa的安装包');
+            }
+            $this->apkName = $name;
+            $data['url'] = Config::get('image_url').'web/download/'.$name;
             // var_dump($this->apk);die;
             unset($data['apk']);
         }
@@ -65,7 +78,7 @@ class Update extends BasicAdmin
             if ($result !== false) {
                 // 移动文件
                 if (!empty($this->apk)) {
-                    rename($this->apk, ROOT_PATH . 'web/download/douyou.apk');
+                    rename($this->apk, ROOT_PATH . 'web/download/'.$this->apkName);
                 }
             } else {
                 // 删除文件

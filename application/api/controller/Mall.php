@@ -50,7 +50,7 @@ class Mall extends BasicApi
             ->select();
         foreach($list['mall_list'] as &$v){
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
-            $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],2);
+            $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],4);
         }
         $list['mall_count'] =  UsdtMall::where("status IN (0,1)")->count();
         return $this->response($list);
@@ -65,6 +65,10 @@ class Mall extends BasicApi
      */
     public function shopping(Request $request,MallValidate $mallValidate)
     {
+        $result = $this->get_open();
+        if(!$result){
+            return $this->response('已休市!',304);
+        }
         // 验证数据
         if (!$mallValidate->scene('shopping')->check($request->post())) {
             return  $this->response( $mallValidate->getError() ,304);
@@ -75,9 +79,12 @@ class Mall extends BasicApi
         if($userInfo['is_examine'] !=1){
             return $this->response('未完成高级认证!', 304);
         }
+        if(!$userInfo['pay_password']){
+            return $this->response('请先设置支付密码!', 304);
+        }
         // 发布单
         $usdtMall = UsdtMall::get($mall_id);
-        if($money > bcsub($usdtMall['usdt_num'],$usdtMall['over_usdt'],2))
+        if($money > bcsub($usdtMall['usdt_num'],$usdtMall['over_usdt'],4))
         {
             return $this->response('剩余usdt库存不足!', 304);
         }
@@ -92,11 +99,11 @@ class Mall extends BasicApi
                 'status'=> $overNum >= $usdtMall->usdt_num ? 2 : 1,
             ]);
             // 购买就是充值USDT
-            $user_wallet = UserWallet::where(['user_id'=>$userInfo['user_id'], 'status'=> 1])->find();
-            $coin = WalletType::where(['id'=>$user_wallet['wallet_type_id']])->find();
+//            $user_wallet = UserWallet::where(['user_id'=>$userInfo['user_id'], 'status'=> 1])->find();
+            $coin = WalletType::where(['id'=>3])->find();
             $data = [
                 'user_id'=>$userInfo['user_id'],
-                'wallet_address'=>$user_wallet['wallet_address'],
+//                'wallet_address'=>$user_wallet['wallet_address'],
                 'type'=>1,
                 'usdt_num'=>$money,
                 'coin'=>$coin['wallet_name'],
@@ -288,6 +295,10 @@ class Mall extends BasicApi
      */
     public function sell(Request $request,MallValidate $mallValidate)
     {
+        $result = $this->get_open();
+        if(!$result){
+            return $this->response('已休市!',304);
+        }
         // 验证数据
         if (!$mallValidate->scene('sell')->check($request->post())) {
             return  $this->response( $mallValidate->getError() ,304);
@@ -295,6 +306,9 @@ class Mall extends BasicApi
         $userInfo = $request->userInfo;
         if($userInfo['is_examine'] !=1){
             return $this->response('未完成高级认证!', 304);
+        }
+        if(!$userInfo['pay_password']){
+            return $this->response('请先设置支付密码!', 304);
         }
         $count = UsdtMall::where("'user_id'={$userInfo['user_id']}  and status !=3")->count();
         if($count >=2 ){
@@ -305,13 +319,13 @@ class Mall extends BasicApi
         if($usdt_num <1){
             return $this->response('出售usdt数量最低为1', 304);
         }
-        $usdt_price = $request->post('usdt_price',6.50); //usdt单价
+        $usdt_price = $request->post('usdt_price',6.70); //usdt单价
         $mix_rmb = $request->post('mix_rmb',$usdt_price); //最小的交易金额
-        $max_rmb = $request->post('max_rmb',bcmul($usdt_num,$usdt_price,4)); //最大的交易金额
+        $max_rmb = $request->post('max_rmb',bcmul($usdt_num,$usdt_price,2)); //最大的交易金额
         if($mix_rmb >= $max_rmb){
             return $this->response('最大交易额小于等于最小交易额!', 304);
         }
-        if($max_rmb > bcmul($usdt_num,$usdt_price,4)){
+        if($max_rmb > bcmul($usdt_num,$usdt_price,2)){
             return $this->response('超过了最大限额!', 304);
         }
 
@@ -337,7 +351,7 @@ class Mall extends BasicApi
             ]);
             // 扣除usdt
             $userInfo->save([
-                'dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 2),
+                'dw_usdt'=> bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,4), 4),
             ]);
             // USDT日志
             UsdtLog::create([
@@ -346,7 +360,7 @@ class Mall extends BasicApi
                 'usdt_charge_type' => 1,
                 'type' => 1, // 1 支出 2转入
                 'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
-                'chance_usdt' =>  bcmul($usdt_num,1.02,2),
+                'chance_usdt' =>  bcmul($usdt_num,1.02,4),
                 'dw_usdt' => $userInfo->dw_usdt,
                 'add_time' => time(),
             ]);
@@ -462,7 +476,7 @@ class Mall extends BasicApi
                 $mall_info->save(['status'=>3]);
                 // 用户USDT余额
                 $userInfo->save([
-                    'dw_usdt'=>bcadd($userInfo['dw_usdt'], bcmul($mall_info['usdt_num'],1.02,2), 4)
+                    'dw_usdt'=>bcadd($userInfo['dw_usdt'], bcmul($mall_info['usdt_num'],1.02,4), 4)
                 ]);
                 // USDT日志
                 UsdtLog::create([
@@ -471,7 +485,7 @@ class Mall extends BasicApi
                     'usdt_charge_type' => 1,
                     'type' => 2, // 1 支出 2转入
                     'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
-                    'chance_usdt' => bcmul($mall_info['usdt_num'],1.02,2),
+                    'chance_usdt' => bcmul($mall_info['usdt_num'],1.02,4),
                     'dw_usdt' => $userInfo->dw_usdt,
                     'add_time' => time(),
                 ]);
@@ -515,7 +529,7 @@ class Mall extends BasicApi
                 ]);
                 // 用户USDT余额
                 $userInfo->save([
-                    'dw_usdt'=> bcadd($userInfo->dw_usdt, bcmul($usdt_mall,1.02,2), 4)
+                    'dw_usdt'=> bcadd($userInfo->dw_usdt, bcmul($usdt_mall,1.02,4), 4)
                 ]);
                 // USDT日志
                 UsdtLog::create([
@@ -524,7 +538,7 @@ class Mall extends BasicApi
                     'usdt_charge_type' => 1,
                     'type' => 2, // 1 支出 2转入
                     'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
-                    'chance_usdt' =>bcmul($usdt_mall,1.02,2),
+                    'chance_usdt' =>bcmul($usdt_mall,1.02,4),
                     'dw_usdt' => $userInfo->dw_usdt,
                     'add_time' => time(),
                 ]);
@@ -532,7 +546,7 @@ class Mall extends BasicApi
                 return $this->response();
             }catch (\Exception $exception){
                 Db::rollback();
-                return $this->response('取消失败!',304);
+                return $this->response('取消失败!'.$exception->getMessage(),304);
             }
         }
 
@@ -565,7 +579,7 @@ class Mall extends BasicApi
             // 扣除Usdt
             $usdt_num = bcsub($usdtMall['usdt_num'], $usdtMall['over_usdt'], 4);
             $userInfo->save([
-                'dw_usdt' => bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,2), 4)
+                'dw_usdt' => bcsub($userInfo->dw_usdt, bcmul($usdt_num,1.02,4), 4)
             ]);
             // USDT日志
             UsdtLog::create([
@@ -574,7 +588,7 @@ class Mall extends BasicApi
                 'usdt_charge_type' => 1,
                 'type' => 1, // 1 支出 2转入
                 'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
-                'chance_usdt' => bcmul($usdt_num,1.02,2),
+                'chance_usdt' => bcmul($usdt_num,1.02,4),
                 'dw_usdt' => $userInfo->dw_usdt,
                 'add_time' => time(),
             ]);
@@ -700,12 +714,30 @@ class Mall extends BasicApi
      */
     public function default_payment(Request $request){
         $userInfo = $request->userInfo;
+        $list['usdt_price'] = Db::table('dw_usdt_price')->value('usdt_price');
         $list['bank'] = UserBank::where(['user_id'=>$userInfo['user_id'],'status'=>1])->find();
         $list['wx_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>2,'status'=>1])->find();
         $list['zfb_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>3,'status'=>1])->find();
         return $this->response($list);
     }
+    //是否休市
+    public function get_open(){
+        $week = date("w");//今天周几
+        if($week == 0){
+            $list = Db::table('dw_basic_opentime')->where(['id'=>7])->find();
+        }else{
+            $list = Db::table('dw_basic_opentime')->where(['id'=>$week])->find();
+        }
+        $time = time();
+        $start_time = strtotime(date('Y-m-d').' '.$list['start_time']);
 
+        $end_time = strtotime(date('Y-m-d').' '.$list['end_time']);
+        if($time>$start_time && $time< $end_time){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
     /**
      * 获取付款信息
      * @param Request $request

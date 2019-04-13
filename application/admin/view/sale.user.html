@@ -1,0 +1,130 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索field-->
+            <!--<section class="panel panel-padding">-->
+                <!--<form class="layui-form"  data-params='{"dataName":"sale","key":"user_id","action":"list","data":"invite_user={$invite_user}"}' method="get" target="_self" action="{:url("$classuri/user")}">-->
+                <!--<div class="layui-form">-->
+
+                    <!--<div class="layui-inline">-->
+                        <!--<div class="layui-input-inline">-->
+                            <!--<input class="layui-input" name="user_name" placeholder="用户名">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="layui-inline">-->
+                        <!--<div class="layui-input-inline">-->
+                            <!--<input class="layui-input" name="user_phone" placeholder="手机号">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="layui-inline">-->
+                        <!--<div class="layui-input-inline">-->
+                            <!--<input class="layui-input" name="start_date" placeholder="开始日期 2000-01-01">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="layui-inline">-->
+                        <!--<div class="layui-input-inline">-->
+                            <!--<input class="layui-input" name="end_date" placeholder="截止日期 2000-01-01">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="layui-inline">-->
+                        <!--<button lay-submit class="layui-btn" lay-filter="search">查找</button>-->
+                    <!--</div>-->
+                <!--</div>-->
+                <!--</form>-->
+            <!--</section>-->
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"sale","key":"user_id"}'>
+                        <thead>
+                        <tr>
+                            <th width="80"><span class="order" data-params='{"field":"user_id","sort":"asc"}'>序号</span></th>
+
+                            <th>用户账号</th>
+                            <th>邀请码</th>
+                            <th>真实名字</th>
+                            <th>手机号</th>
+                            <th>性别</th>
+                            <th>USDT余额</th>
+                            <th>USDT支出</th>
+                            <th>USDT收入</th>
+                            <th>注册时间</th>
+                            <th>认证状态</th>
+                            <th>高级认证状态</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script id="list-tpl" type="text/html" data-params='{"url":"?invite_user={$invite_user}","dataName":"sale","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>{{ item.user_id}}</td>
+        <td>{{ item.user_name}}</td>
+        <td>{{ item.invite_code}}</td>
+        <td>{{ item.true_name}}</td>
+        <td>{{ item.user_phone }}</td>
+        <td>
+            {{# if (item.sex==1){ }}
+            男
+            {{# } else if (item.sex==2){ }}
+            女
+            {{# } else { }}
+            保密
+            {{# } }}
+        </td>
+        <td>{{ item.dw_usdt }}</td>
+        <td>{{ item.pay_usdt }}</td>
+        <td>{{ item.income_usdt }}</td>
+        <td>{{ item.add_time }}</td>
+        <td>
+            {{#if (item.is_attestation == 0){ }}
+            未上传认证
+            {{# }else{ }}
+            已认证
+            {{# } }}
+        </td>
+        <td>
+            {{#if (item.is_examine == 0){ }}
+            未上传认证
+            {{# }else if(item.is_examine == 1){ }}
+            已认证
+            {{# }else if(item.is_examine == 2){ }}
+            待审核
+            {{# }else if(item.is_examine == 3){ }}
+            认证不通过
+            {{# } }}
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+    // layui.define(['jquery', "jqtable",  'jqform'], function(exports) {
+    //     var $ = layui.jquery,
+    //         table = layui.jqtable,
+    //         jqbind = layui.jqbind,
+    //         form = layui.jqform,
+    //         list = new table();
+    //
+    //     list.init({ tplid: "#list-tpl" });
+    //     top.global[list.options.dataName] = list;
+    //     form.init();
+    //
+    //     form.on("select(pid-select)", function(data) {
+    //         var level = $(data.elem).find("option:selected").data("level");
+    //         $(data.elem).parents("form").find("input[name=level]").val(level + 1);
+    //     })
+    // });
+</script>

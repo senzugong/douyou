@@ -34,9 +34,9 @@ class Member extends BasicAdmin
         // 实例Query对象
         $db = User::order('add_time', 'desc');
         // 应用搜索条件
-        foreach (['user_name', 'user_phone'] as $key) {
+        foreach (['user_name', 'user_phone', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
-                $db->where($key, 'like', "%{$get[$key]}%");
+                $key == 'role_id' ? $db->where($key, $get[$key]) :$db->where($key, 'like', "%{$get[$key]}%");
             }
         }
         // 实例化并显示

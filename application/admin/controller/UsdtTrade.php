@@ -34,12 +34,13 @@ class UsdtTrade extends BasicAdmin
         // 实例Query对象
         $db = UsdtChangelog::alias('a')
             ->join('dw_users b', 'b.user_id=a.user_id')
+            ->where(['a.type'=> 2]) // 只审核提现的
             ->field('a.*,b.user_name,b.true_name')
             ->order('status asc, a.changelog_id desc');
         // 应用搜索条件
         foreach (['user_id', 'type', 'wallet_address', 'coin_address'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
-                $db->where($key, $get[$key]);
+                'user_id' == $key ? $db->where('a.'.$key, $get[$key]) :$db->where($key, $get[$key]);
             }
         }
         // 实例化并显示
@@ -127,11 +128,30 @@ class UsdtTrade extends BasicAdmin
                     LogService::write('系统管理', 'USDT提现成功');
                 }
             } else {
+                // 审核没有通过
                 $name = $changeLog->type == 1 ? '充值' : '提现';
+                // 手续费
+                $money = bcmul($changeLog['usdt_num'], 1.05, 4);
+                // 返还USDT
+                $user->save([
+                    'dw_usdt'=> bcadd($user->dw_usdt, $money, 4)
+                ]);
+                // 账单日志
+                $usdtLogId = UsdtLog::insertGetId([
+                    'user_id'=> $user->user_id,
+                    'log_content'=> "USDT{$name}失败",
+                    'usdt_charge_id'=> $logId,
+                    'usdt_charge_type'=> 2, // 1 其他  2是充值提现
+                    'type'=> 2,
+                    'log_status'=> $changeLog['type'] == 1 ? 8 : 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到 8USDT充值
+                    'chance_usdt'=> $money,
+                    'dw_usdt'=> $user->dw_usdt,
+                    'add_time'=> time(),
+                ]);
                 // 消息通知
                 Message::create([
                     'user_id'=> $user['user_id'],
-                    'trigger_id'=> $logId,
+                    'trigger_id'=> $usdtLogId,
                     'title'=> "您的{$name}失败",
                     'content'=> "您{$name}的{$changeLog['usdt_num']}USDT没有通过",
                     'msg_type'=> 6,

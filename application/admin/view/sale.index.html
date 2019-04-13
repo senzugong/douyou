@@ -5,7 +5,7 @@
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!--头部搜索-->
             <section class="panel panel-padding">
-                <form class="layui-form"  data-params='{"dataName":"member","key":"id","action":"list"}' method="get" action="{:url("$classuri/index")}">
+                <form class="layui-form"  data-params='{"dataName":"member","key":"user_id","action":"list"}' method="get" action="{:url("$classuri/index")}">
                 <div class="layui-form">
 
                     <div class="layui-inline">
@@ -19,15 +19,6 @@
                         </div>
                     </div>
                     <div class="layui-inline">
-                        <div class="layui-input-inline">
-                            <select name="role_id">
-                                <option value=""></option>
-                                <option value="0">普通用户</option>
-                                <option value="1">业务员</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-inline">
                         <button lay-submit class="layui-btn" lay-filter="search">查找</button>
                     </div>
                 </div>
@@ -37,10 +28,10 @@
             <!--列表-->
             <section class="panel panel-padding">
                 <div class="layui-form">
-                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"id"}'>
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"user_id"}'>
                         <thead>
                         <tr>
-                            <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
+                            <th width="80"><span class="order" data-params='{"field":"user_id","sort":"asc"}'>序号</span></th>
 
                             <th>用户账号</th>
                             <th>邀请码</th>
@@ -51,8 +42,7 @@
                             <th>注册时间</th>
                             <th>认证状态</th>
                             <th>高级认证状态</th>
-                            <th>是否是业务员</th>
-                            <th width="180">操作</th>
+                            <th width="100">操作</th>
                         </tr>
                         </thead>
                         <tbody id="list"></tbody>
@@ -103,31 +93,10 @@
             {{# } }}
         </td>
         <td>
-            {{#if (item.role_id == 0){ }}
-            否
-            {{# }else if(item.role_id == 1){ }}
-            是
-            {{# } }}
-        </td>
-        <td>
             <div class="layui-btn-group">
-                {{#if (item.is_examine != 0){ }}
-                <button class="layui-btn layui-btn-mini modal" data-params='{"content": "examine.html","url":"{:url("$classuri/examine")}","type":"2", "title": "{{item.user_name}}","key":"id","data":"user_id={{item.user_id}}"}'>
-                    <i class="iconfont">&#xe653;</i>审核
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": "user.html","url":"{:url("$classuri/user")}","type":"2", "title": "业务员:{{item.user_name}}","key":"user_id","data":"invite_user={{item.user_id}}"}'>
+                    <i class="iconfont">&#xe653;</i>邀请用户
                 </button>
-                {{# } }}
-                <button class="layui-btn layui-btn-mini modal" data-params='{"content": "edit.html","url":"{:url("$classuri/edit")}","type":"2", "title": "{{item.user_name}}","key":"id","data":"user_id={{item.user_id}}"}'>
-                    <i class="iconfont">&#xe653;</i>编辑
-                </button>
-                {{#if (item.is_deleted == 1){ }}
-                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=0&field=is_deleted","method":"post","confirm":"true"}'>
-                    <i class="layui-icon">&#x1005;</i>启用
-                </button>
-                {{# }else{ }}
-                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1&field=is_deleted","method":"post","confirm":"true"}'>
-                    <i class="iconfont">&#xe626;</i>禁用
-                </button>
-                {{# } }}
             </div>
         </td>
     </tr>

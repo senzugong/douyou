@@ -59,6 +59,8 @@ class User extends BasicApi
             $all_fill = bcadd($all_fill,$v['chance_usdt'],2) ;
         };
         $userInfo['today_money'] = bcsub($all_expenditure,$all_fill,2);
+        // 可提现余额
+        $userInfo['allow_usdt'] = bcdiv($userInfo['dw_usdt'], 1.05, 4);
         // 冻结资金
         $sell_freeze = '0.00';
         $usdtMall = $userInfo->usdtMall()
@@ -107,7 +109,7 @@ class User extends BasicApi
             $data['complete_rate'] = $userInfo['complete_rate'] +10;
         }
         $result = $userInfo->save($data);
-            if($userInfo['user_avatar'] !== 'erweima/avatar.png'){
+            if($imgOld !== 'erweima/avatar.png'){
                 // 将旧头像删除
                 if ($result && is_file(ROOT_PATH . $imgOld)) {
                     @unlink(ROOT_PATH . $imgOld);
