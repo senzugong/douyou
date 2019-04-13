@@ -82,7 +82,7 @@
         <td>{{ item.gathering_name}}</td>
         <td>
             {{# if (item.gathering_img) { }}
-            <div style="display: inline-block;"><img src="{{ item.gathering_img}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            <div style="display: inline-block;"><img src="{{ item.gathering_img}}" onclick="openImage('{{ item.gathering_img}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
             {{# } }}
         </td>
         <td>{{ item.add_time }}<td>
@@ -114,4 +114,11 @@
 {include file="public/bottom"}
 <script>
     layui.use('list');
+    // 放大显示图片
+    function openImage(url) {
+        layer.open({
+            title: '收款码'
+            ,content: '<img src='+url+'>'
+        });
+    }
 </script>
