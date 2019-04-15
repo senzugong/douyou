@@ -114,8 +114,7 @@ class Order extends BasicAdmin
                     'add_time'=> time(),
                 ]);
                 // 推送消息
-                $phone = User::where(['user_id'=> $order['user_id']])->value('user_phone');
-                JgPush::send($phone, '您的购买USDT订单已完成');
+                JgPush::send($order['user_id'], '您的购买USDT订单已完成');
                 // 提交
                 Db::commit();
                 $result = true;
@@ -157,10 +156,8 @@ class Order extends BasicAdmin
                     'add_time'=> time(),
                 ]);
                 // 推送消息
-                $mall_phone = User::where(['user_id'=> $order['mall_user_id']])->value('user_phone');
-                JgPush::send($mall_phone, '您的USDT订单已被取消');
-                $phone = User::where(['user_id'=> $order['user_id']])->value('user_phone');
-                JgPush::send($phone, '您的USDT订单已被取消');
+                JgPush::send($order['mall_user_id'], '您的USDT订单已被取消');
+                JgPush::send($order['user_id'], '您的USDT订单已被取消');
                 // 提交
                 Db::commit();
                 $result = true;

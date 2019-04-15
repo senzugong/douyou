@@ -138,8 +138,7 @@ class Mall extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            $phone = User::where(['user_id'=> $usdtMall['user_id']])->value('user_phone');
-            JgPush::send($phone, '您发布出售USDT已被下单');
+            JgPush::send($usdtMall['user_id'], '您发布出售USDT已被下单');
             // 提交
             Db::commit();
             // 返回结果
@@ -179,8 +178,7 @@ class Mall extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            $phone = User::where(['user_id'=> $usdtOrder['mall_user_id']])->value('user_phone');
-            JgPush::send($phone, '您发布出售USDT订单已付款');
+            JgPush::send($usdtOrder['mall_user_id'], '您发布出售USDT订单已付款');
             // 提交
             Db::commit();
             return $this->response();
@@ -248,8 +246,7 @@ class Mall extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            $phone = User::where(['user_id'=> $order['user_id']])->value('user_phone');
-            JgPush::send($phone, '您的购买USDT订单已完成');
+            JgPush::send($order['user_id'], '您的购买USDT订单已完成');
             // 提交
             Db::commit();
             return $this->response();
@@ -287,8 +284,7 @@ class Mall extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            $phone = User::where(['user_id'=> $order['mall_user_id']])->value('user_phone');
-            JgPush::send($phone, '您的USDT订单已被申诉');
+            JgPush::send($order['mall_user_id'], '您的USDT订单已被申诉');
             // 提交
             Db::commit();
             return $this->response();
@@ -531,8 +527,7 @@ class Mall extends BasicApi
                         'add_time'=> time(),
                     ]);
                     // 推送消息
-                    $phone = User::where(['user_id'=> $item['user_id']])->value('user_phone');
-                    JgPush::send($phone, '您的USDT订单已被取消');
+                    JgPush::send($item['user_id'], '您的USDT订单已被取消');
                 }
                 //用户需要扣除的
                 $usdt_mall = bcsub($mall_info['usdt_num'],$usdt_order,2);
@@ -656,8 +651,7 @@ class Mall extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            $phone = User::where(['user_id'=> $cancelUser])->value('user_phone');
-            JgPush::send($phone, '您的USDT订单已被取消');
+            JgPush::send($cancelUser, '您的USDT订单已被取消');
             // 提交数据
             Db::commit();
             return $this->response();

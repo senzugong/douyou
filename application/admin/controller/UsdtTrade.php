@@ -102,7 +102,7 @@ class UsdtTrade extends BasicAdmin
                         'add_time'=> time(),
                     ]);
                     // 推送消息
-                    JgPush::send($user['user_phone'], "您的充值已到账");
+                    JgPush::send($user['user_id'], "您的充值已到账");
                     // 系统日志
                     LogService::write('系统管理', 'USDT充值成功');
                 } elseif ($changeLog['type'] == 2) {
@@ -128,7 +128,7 @@ class UsdtTrade extends BasicAdmin
                         'add_time'=> time(),
                     ]);
                     // 推送消息
-                    JgPush::send($user['user_phone'], "您的提现已成功");
+                    JgPush::send($user['user_id'], "您的提现已成功");
                     // 提现
                     LogService::write('系统管理', 'USDT提现成功');
                 }
@@ -163,7 +163,7 @@ class UsdtTrade extends BasicAdmin
                     'add_time'=> time(),
                 ]);
                 // 推送消息
-                JgPush::send($user['user_phone'], "您的{$name}失败");
+                JgPush::send($user['user_id'], "您的{$name}失败");
                 LogService::write('系统管理', "USDT{$name}不通过");
             }
             // 提交
