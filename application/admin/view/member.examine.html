@@ -34,7 +34,7 @@
                         <label class="layui-form-label">身份正面照</label>
                         <div class="layui-input-block">
                             <div class="imgbox">
-                                <img src="/{$vo.img1}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                                <img src="/{$vo.img1}" onclick="openImage('/{$vo.img1}')" alt="..." class="img-thumbnail" style="max-height: 100%">
                             </div>
                         </div>
                     </div>
@@ -42,7 +42,7 @@
                         <label class="layui-form-label">身份反面照</label>
                         <div class="layui-input-block">
                             <div class="imgbox">
-                                <img src="/{$vo.img2}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                                <img src="/{$vo.img2}" onclick="openImage('/{$vo.img2}')" alt="..." class="img-thumbnail" style="max-height: 100%">
                             </div>
                         </div>
                     </div>
@@ -50,7 +50,7 @@
                         <label class="layui-form-label">手持身份照</label>
                         <div class="layui-input-block">
                             <div class="imgbox">
-                                <img src="/{$vo.img3}" alt="..." class="img-thumbnail" style="max-height: 100%">
+                                <img src="/{$vo.img3}" onclick="openImage('/{$vo.img3}')" alt="..." class="img-thumbnail" style="max-height: 100%">
                             </div>
                         </div>
                     </div>
@@ -82,6 +82,13 @@
         if(index){
             parent.layer.close(index);
         }
+    }
+    // 放大显示图片
+    function openImage(url) {
+        layer.open({
+            title: '收款码'
+            ,content: '<img src='+url+'>'
+        });
     }
 </script>
 
