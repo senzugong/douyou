@@ -43,6 +43,7 @@
                             <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
 
                             <th>用户账号</th>
+                            <th>邀请人</th>
                             <th>邀请码</th>
                             <th>真实名字</th>
                             <th>手机号</th>
@@ -70,6 +71,7 @@
     <tr>
         <td>{{ item.user_id}}</td>
         <td>{{ item.user_name}}</td>
+        <td>{{ item.invite_name}}</td>
         <td>{{ item.invite_code}}</td>
         <td>{{ item.true_name}}</td>
         <td>{{ item.user_phone }}</td>

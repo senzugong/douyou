@@ -32,11 +32,14 @@ class Member extends BasicAdmin
         // 获取到所有GET参数
         $get = $this->request->get();
         // 实例Query对象
-        $db = User::order('add_time', 'desc');
+        $db = User::alias('a')
+            ->join('dw_users b', 'b.user_id = a.invite_user', 'left')
+            ->field('a.*, b.user_name as invite_name')
+            ->order('a.add_time', 'desc');
         // 应用搜索条件
         foreach (['user_name', 'user_phone', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
-                $key == 'role_id' ? $db->where($key, $get[$key]) :$db->where($key, 'like', "%{$get[$key]}%");
+                $key == 'role_id' ? $db->where('a.'.$key, $get[$key]) :$db->where('a.'.$key, 'like', "%{$get[$key]}%");
             }
         }
         // 实例化并显示
