@@ -8,6 +8,7 @@
 
 namespace app\admin\controller;
 
+use app\common\library\JgPush;
 use app\common\model\Message;
 use app\common\model\UsdtChangelog;
 use app\common\model\UsdtLog;
@@ -112,6 +113,9 @@ class Order extends BasicAdmin
                     'msg_type'=> 4, // 类型 1幸运转盘 2号码竞猜 3猜涨跌 4场外交易 5活动的消息 6提币的消息
                     'add_time'=> time(),
                 ]);
+                // 推送消息
+                $phone = User::where(['user_id'=> $order['user_id']])->value('user_phone');
+                JgPush::send($phone, '您的购买USDT订单已完成');
                 // 提交
                 Db::commit();
                 $result = true;
@@ -152,6 +156,11 @@ class Order extends BasicAdmin
                     'msg_type'=> 4, // 类型 1幸运转盘 2号码竞猜 3猜涨跌 4场外交易 5活动的消息 6提币的消息
                     'add_time'=> time(),
                 ]);
+                // 推送消息
+                $mall_phone = User::where(['user_id'=> $order['mall_user_id']])->value('user_phone');
+                JgPush::send($mall_phone, '您的USDT订单已被取消');
+                $phone = User::where(['user_id'=> $order['user_id']])->value('user_phone');
+                JgPush::send($phone, '您的USDT订单已被取消');
                 // 提交
                 Db::commit();
                 $result = true;

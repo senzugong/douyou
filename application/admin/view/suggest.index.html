@@ -86,13 +86,13 @@
         <td>{{ item.proposal_content}}</td>
         <td>
             {{# if (item.img1){ }}
-            <div style="display: inline-block;"><img src="/{{ item.img1}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            <div style="display: inline-block;"><img src="/{{ item.img1}}" onclick="openImage('/{{ item.img1}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
             {{# } }}
             {{# if (item.img2){ }}
-            <div style="display: inline-block;"><img src="/{{ item.img2}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            <div style="display: inline-block;"><img src="/{{ item.img2}}" onclick="openImage('/{{ item.img2}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
             {{# } }}
             {{# if (item.img3){ }}
-            <div style="display: inline-block;"><img src="/{{ item.img3}}" style="max-width: 50px;max-height: 50px;" alt=""></div>
+            <div style="display: inline-block;"><img src="/{{ item.img3}}" onclick="openImage('/{{ item.img3}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
             {{# } }}
         </td>
         <td>{{ item.user_phone}}</td>
@@ -123,5 +123,12 @@
     var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
     if(index){
         parent.layer.close(index);
+    }
+    // 放大显示图片
+    function openImage(url) {
+        layer.open({
+            title: '收款码'
+            ,content: '<img src='+url+'>'
+        });
     }
 </script>
