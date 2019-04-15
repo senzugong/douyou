@@ -23,10 +23,6 @@ class ComposerStaticInit3690105f7719931c5f8f2ffabcf1c6ab
             'think\\captcha\\' => 14,
             'think\\' => 6,
         ),
-        'a' => 
-        array (
-            'app\\' => 4,
-        ),
         'W' => 
         array (
             'Workerman\\' => 10,
@@ -42,6 +38,10 @@ class ComposerStaticInit3690105f7719931c5f8f2ffabcf1c6ab
         'O' => 
         array (
             'OSS\\' => 4,
+        ),
+        'J' => 
+        array (
+            'JPush\\' => 6,
         ),
         'E' => 
         array (
@@ -72,12 +72,7 @@ class ComposerStaticInit3690105f7719931c5f8f2ffabcf1c6ab
         ),
         'think\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/thinkphp/library/think',
-            1 => __DIR__ . '/..' . '/topthink/think-queue/src',
-        ),
-        'app\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/application',
+            0 => __DIR__ . '/..' . '/topthink/think-queue/src',
         ),
         'Workerman\\' => 
         array (
@@ -95,6 +90,10 @@ class ComposerStaticInit3690105f7719931c5f8f2ffabcf1c6ab
         'OSS\\' => 
         array (
             0 => __DIR__ . '/..' . '/aliyuncs/oss-sdk-php/src/OSS',
+        ),
+        'JPush\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/jpush/jpush/src/JPush',
         ),
         'Endroid\\QrCode\\' => 
         array (
