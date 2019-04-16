@@ -236,6 +236,12 @@ class Mall extends BasicApi
             ]);
 
             $order->save(['status'=> 2]);
+            // 挂单
+            $usdtMall = $order->usdtMall;
+            if ($usdtMall['status'] == 2) {
+                // 卖完的自动下架
+                $usdtMall->save(['status'=> 3]);
+            }
             // 消息通知
             Message::create([
                 'user_id'=> $order['user_id'],
@@ -505,16 +511,20 @@ class Mall extends BasicApi
                 return $this->response('取消失败!',304);
             }
         }elseif($mall_info['status'] == 1){//部分成交
-            // 订单列表
-            $orderList = UsdtOrder::where("mall_id='$mall_id' and mall_user_id='{$userInfo['user_id']}' and status IN(1,2,3)")
+            $orderException = UsdtOrder::where("mall_id='$mall_id' and mall_user_id='{$userInfo['user_id']}' and status in (1,3)")->count();
+            if ($orderException > 0) {
+                return $this->response('订单存在异常!',307);
+            }
+            // 订单列表（待付款的订单取消）
+            $orderList = UsdtOrder::where("mall_id='$mall_id' and mall_user_id='{$userInfo['user_id']}' and status = 0")
                 ->field('order_id, user_id, order_sn, changelog_id, order_usdt_num')
                 ->select();
             Db::startTrans();
             try{
-                // 取消扣除的usdt
-                $usdt_order = 0;
+                // 取消所有未确定付款的订单
+                $cancelUsdt = 0;
                 foreach ($orderList as $item) {
-                    $usdt_order = bcadd($usdt_order, $item->order_usdt_num, 4);
+                    $cancelUsdt = bcadd($cancelUsdt, $item['order_usdt_num'], 4);
                     // 取消充值订单
                     UsdtChangelog::where(['changelog_id'=> $item['changelog_id']])->update(['status'=> 2]);
                     // 消息通知
@@ -529,14 +539,16 @@ class Mall extends BasicApi
                     // 推送消息
                     JgPush::send($item['user_id'], '您的USDT订单已被取消');
                 }
-                //用户需要扣除的
-                $usdt_mall = bcsub($mall_info['usdt_num'],$usdt_order,2);
+                // 退回订单USDT
+                $over_usdt = bcsub($mall_info['over_usdt'], $cancelUsdt, 4);
+                // 账单剩余USDT
+                $usdt_mall = bcsub($mall_info['usdt_num'], $over_usdt,4);
                 // 没有确认支付的订单取消其订单
                 UsdtOrder::where(['mall_id'=>$mall_id,'status'=>0])->update(['status'=>4]);
                 // 挂卖下架
                 $mall_info->save([
                     'status'=>3,
-                    'over_usdt'=>$usdt_order
+                    'over_usdt'=>$over_usdt,
                 ]);
                 // 用户USDT余额
                 $userInfo->save([
@@ -637,7 +649,11 @@ class Mall extends BasicApi
             // 取消订单
             $order->save(['status'=>4]);
             // 返还usdt到挂单
-            $mall->save(['over_usdt' => $usdt]);
+            if ($mall['status'] == 2) {
+                $mall->save(['over_usdt' => $usdt, 'status'=> 1]);
+            } else {
+                $mall->save(['over_usdt' => $usdt]);
+            }
             // 取消充值订单
             UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 2]);
             // 消息通知
@@ -702,6 +718,7 @@ class Mall extends BasicApi
             $list ['pay_info'] =UserBank::where(['bank_id'=> $list['detail_order']['gathering_id']])->find();
         }else{
             $list ['pay_info'] =UserGathering::where(['gathering_id'=>$list['detail_order']['gathering_id']])->find();
+            $list['pay_info']['gathering_name'] = substr_replace($list['pay_info']['gathering_name'],'****',3,4);
             $list['pay_info']['gathering_img'] = $list['pay_info']['gathering_img']  ?Config::get('image_url').$list['pay_info']['gathering_img'] :'';
         }
 
@@ -732,6 +749,7 @@ class Mall extends BasicApi
         $list['bank'] = UserBank::where(['user_id'=>$userInfo['user_id'],'status'=>1])->find();
         $list['wx_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>2,'status'=>1])->find();
         $list['zfb_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>3,'status'=>1])->find();
+        $list['zfb_pay']['gathering_name'] = substr_replace($list['zfb_pay']['gathering_name'],'****',3,4);
         return $this->response($list);
     }
     //是否休市
