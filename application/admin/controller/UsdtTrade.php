@@ -18,7 +18,7 @@ use think\Db;
 
 /**
  * Class UsdtTrade
- * USDT充值提现
+ * USDT充值提币
  * @package app\admin\controller
  */
 class UsdtTrade extends BasicAdmin
@@ -29,13 +29,13 @@ class UsdtTrade extends BasicAdmin
      */
     public function index() {
         // 设置页面标题
-        $this->title = 'USDT充值提现列表';
+        $this->title = 'USDT充值提币列表';
         // 获取到所有GET参数
         $get = $this->request->get();
         // 实例Query对象
         $db = UsdtChangelog::alias('a')
             ->join('dw_users b', 'b.user_id=a.user_id')
-            ->where(['a.type'=> 2]) // 只审核提现的
+            ->where(['a.type'=> 2]) // 只审核提币的
             ->field('a.*,b.user_name,b.true_name')
             ->order('status asc, a.changelog_id desc');
         // 应用搜索条件
@@ -85,7 +85,7 @@ class UsdtTrade extends BasicAdmin
                         'user_id'=> $user->user_id,
                         'log_content'=> 'USDT充值',
                         'usdt_charge_id'=> $logId,
-                        'usdt_charge_type'=> 2, // 1 其他  2是充值提现
+                        'usdt_charge_type'=> 2, // 1 其他  2是充值提币
                         'type'=> 2,
                         'log_status'=> 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
                         'chance_usdt'=> $changeLog['usdt_num'],
@@ -109,9 +109,9 @@ class UsdtTrade extends BasicAdmin
                     // 账单日志
                     $usdtLogId = UsdtLog::insertGetId([
                         'user_id'=> $user['user_id'],
-                        'log_content'=> 'USDT提现',
+                        'log_content'=> 'USDT提币',
                         'usdt_charge_id'=> $logId,
-                        'usdt_charge_type'=> 2, // 1 其他  2是充值提现
+                        'usdt_charge_type'=> 2, // 1 其他  2是充值提币
                         'type'=> 1,
                         'log_status'=> 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
                         'chance_usdt'=> $changeLog['usdt_num'],
@@ -122,19 +122,19 @@ class UsdtTrade extends BasicAdmin
                     Message::create([
                         'user_id'=> $user['user_id'],
                         'trigger_id'=> $usdtLogId,
-                        'title'=> '您的提现已成功',
-                        'content'=> "您已成功提现{$changeLog['usdt_num']}USDT",
+                        'title'=> '您的提币已成功',
+                        'content'=> "您已成功提币{$changeLog['usdt_num']}USDT",
                         'msg_type'=> 6,
                         'add_time'=> time(),
                     ]);
                     // 推送消息
-                    JgPush::send($user['user_id'], "您的提现已成功");
-                    // 提现
-                    LogService::write('系统管理', 'USDT提现成功');
+                    JgPush::send($user['user_id'], "您的提币已成功");
+                    // 提币
+                    LogService::write('系统管理', 'USDT提币成功');
                 }
             } else {
                 // 审核没有通过
-                $name = $changeLog->type == 1 ? '充值' : '提现';
+                $name = $changeLog->type == 1 ? '充值' : '提币';
                 // 手续费
                 $money = round(bcmul($changeLog['usdt_num'], 1.05, 6), 4);
                 // 返还USDT
@@ -146,7 +146,7 @@ class UsdtTrade extends BasicAdmin
                     'user_id'=> $user->user_id,
                     'log_content'=> "USDT{$name}失败",
                     'usdt_charge_id'=> $logId,
-                    'usdt_charge_type'=> 2, // 1 其他  2是充值提现
+                    'usdt_charge_type'=> 2, // 1 其他  2是充值提币
                     'type'=> 2,
                     'log_status'=> $changeLog['type'] == 1 ? 8 : 2, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到 8USDT充值
                     'chance_usdt'=> $money,

@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller;
 
+use app\common\model\UsdtLog;
 use controller\BasicAdmin;
 use service\DataService;
 use think\Db;
@@ -81,16 +82,23 @@ class User extends BasicAdmin
                 $data[$k]['date']="昨天";
             }
         }
-        //会员男女统计比例开始
-        $sex_list=UserModel::field('count(user_id) as num')
-            ->group('sex')
-            ->order('sex desc')
-            ->select(); //1是男2是女
+        //会员usdt支出  收入统计比例开始
+        $sex_list=Db::table('dw_usdt_log')->whereTime('add_time','today')->select(); //1是男2是女
+        $out = '0.0000';
+        $on = '0.0000';
+        foreach($sex_list as &$v){
+            if($v['type'] ==1){
+                $out = bcadd($v['chance_usdt'],$out,4);
+            }else{
+                $on = bcadd($v['chance_usdt'],$out,4);
+            }
+
+        }
         $sex=array();
-        $sex[0]['name'] = "女";
-        $sex[0]['value'] = isset($sex_list[0]) ? $sex_list[0]['num'] : 0;
-        $sex[1]['name'] = "男";
-        $sex[1]['value'] = isset($sex_list[1]) ? $sex_list[1]['num'] : 0;
+        $sex[0]['name'] = "usdt支出{$out}";
+        $sex[0]['value'] =$out;
+        $sex[1]['name'] = "usdt收入{$on}";
+        $sex[1]['value'] = $on;
         //会员男女统计比例结束
         //上期比特币开奖
         return json(['user'=>$data,'sex'=>$sex,'article'=>$artice_data]);

@@ -43,6 +43,7 @@
                             <th>购买的手数</th>
                             <th>购买的点位</th>
                             <th>下注金额</th>
+                            <th>入仓价格</th>
                             <th>是否中奖</th>
                             <th>中奖的金额</th>
                             <th>交易USDT数量</th>
@@ -80,6 +81,7 @@
         <td>{{ item.buy_quiz}}</td>
         <td>{{ item.btc_point}}</td>
         <td>{{ item.usdt_fee}}</td>
+        <td>{{ item.buy_price}}</td>
         <td>
             {{# if (item.is_win == 0) { }}
            未开奖

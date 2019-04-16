@@ -82,8 +82,11 @@ class Index extends BasicAdmin
 
         $user_count= User::count();//用户总数
         $now_user_count= User::whereTime('add_time', 'd')->count();//今日注册用户数
-
-
+        $usdt_count = Db::table('dw_users')->select();
+        $usdt = '0.0000';
+        foreach ($usdt_count as &$v){
+            $usdt = bcadd($v['dw_usdt'],$usdt,4);
+        }
         $article_count=User::where(['is_examine'=> 1])->count();// 已高级认证
         $now_article_count=User::where(['is_examine'=> 2])->count();//待审核高级认证
         //
@@ -118,7 +121,7 @@ class Index extends BasicAdmin
             'comment_count'=>$comment_count,
             'now_comment_count'=>$now_comment_count,
             'btc_result'=>$btc_result,
-            // 'btc'=>$btc2
+             'usdt'=>$usdt
         ]);
         return view();
     }
