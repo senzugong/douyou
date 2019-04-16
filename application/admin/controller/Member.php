@@ -90,6 +90,9 @@ class Member extends BasicAdmin
      */
     public function edit()
     {
+        // 分组
+        $group = Db::table('dw_group')->where(['status'=> 1])->select();
+        $this->assign('group', $group);
         return $this->_form($this->table,'form', '编辑成功','member/index','user_id');
     }
 
@@ -98,6 +101,7 @@ class Member extends BasicAdmin
             foreach($data as $k=>&$v){
                 $data[$k]['add_time'] = date('Y-m-d H:m:s',$v['add_time']);
                 $v['user_avatar'] = $v['user_avatar'] = $v['user_avatar'] ? '/'.$v['user_avatar'] : '';
+                $v['invite_name'] = $v['invite_name'] ?: '';
             }
         }
     }

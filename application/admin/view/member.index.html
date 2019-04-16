@@ -113,7 +113,7 @@
         </td>
         <td>
             <div class="layui-btn-group">
-                {{#if (item.is_examine != 0){ }}
+                {{#if (item.is_examine == 2){ }}
                 <button class="layui-btn layui-btn-mini modal" data-params='{"content": "examine.html","url":"{:url("$classuri/examine")}","type":"2", "title": "{{item.user_name}}","key":"id","data":"user_id={{item.user_id}}"}'>
                     <i class="iconfont">&#xe653;</i>审核
                 </button>
