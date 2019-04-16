@@ -61,7 +61,7 @@ class Index extends BasicAdmin
                 unset($menus[$key]);
             }
         }
-        return $menus;
+        return array_values($menus);
     }
 
     /**
