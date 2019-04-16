@@ -13,7 +13,7 @@ class SmsValidate extends Validate
     ];
 
     protected function checkPhone($value){
-        $phone_preg = '/^0{0,1}(13[0-9]|15[0-9]|173|176|177|178|18[0-9])[0-9]{8}$/';
+        $phone_preg = '/^0{0,1}(13[0-9]|15[0-9]|166|173|176|177|178|18[0-9]|19[89])[0-9]{8}$/';
         if(preg_match($phone_preg, $value)){
             return true;
         }else{
