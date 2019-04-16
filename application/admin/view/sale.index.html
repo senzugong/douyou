@@ -55,7 +55,7 @@
                             <th>注册时间</th>
                             <th>认证状态</th>
                             <th>高级认证状态</th>
-                            <th width="180">操作</th>
+                            <th width="100">操作</th>
                         </tr>
                         </thead>
                         <tbody id="list"></tbody>
@@ -66,26 +66,6 @@
             </section>
         </div>
     </div>
-</div>
-<div class="add-subcat">
-    <form id="form1" class="layui-form" data-params='{"dataName":"member","key":"user_id","bind":true,"pid":"pid"}'  method="post">
-        <div class="layui-form-item">
-            <label class="layui-form-label">分组名称</label>
-            <div class="layui-input-block">
-                <select name="group_id" placeholder="分组">
-                    <option value=""></option>
-                    {foreach $group as $val}
-                    <option value="{$val['group_id']}">{$val['group_name']}</option>
-                    {/foreach}
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
-            </div>
-        </div>
-    </form>
 </div>
 <script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
     {{# layui.each(d.list, function(index, item){ }}
@@ -121,9 +101,6 @@
         </td>
         <td>
             <div class="layui-btn-group">
-                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"400px,250px","title":"编辑分组","data":"user_id={{ item.user_id }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>
-                    <i class="iconfont">&#xe653;</i>分组用户
-                </button>
                 <button class="layui-btn layui-btn-mini modal" data-params='{"content": "user.html","url":"{:url("$classuri/user")}","type":"2", "title": "业务员:{{item.user_name}}","key":"user_id","data":"invite_user={{item.user_id}}"}'>
                     <i class="iconfont">&#xe653;</i>邀请用户
                 </button>
