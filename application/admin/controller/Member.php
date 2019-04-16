@@ -93,6 +93,11 @@ class Member extends BasicAdmin
         // 分组
         $group = Db::table('dw_group')->where(['status'=> 1])->select();
         $this->assign('group', $group);
+        // 用户身份认证
+        $examine = Db::table('dw_user_examine')
+            ->where(['user_id'=> $this->request->param('user_id'), 'status'=> 1])
+            ->find();
+        $this->assign('examine', $examine);
         return $this->_form($this->table,'form', '编辑成功','member/index','user_id');
     }
 
