@@ -1,0 +1,150 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form"  data-params='{"dataName":"member","key":"user_id","action":"list"}' method="get" action="{:url("$classuri/index")}">
+                <div class="layui-form">
+
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input class="layui-input" name="user_name" placeholder="用户名">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input class="layui-input" name="user_phone" placeholder="手机号">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <select name="group_id" placeholder="分组">
+                                <option value=""></option>
+                                {foreach $group as $val}
+                                <option value="{$val['group_id']}">{$val['group_name']}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                    </div>
+                </div>
+                </form>
+            </section>
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"member","key":"user_id"}'>
+                        <thead>
+                        <tr>
+                            <th width="80"><span class="order" data-params='{"field":"user_id","sort":"asc"}'>序号</span></th>
+
+                            <th>用户账号</th>
+                            <th>用户分组</th>
+                            <th>总发行USDT</th>
+                            <th>总收回USDT</th>
+                            <th>邀请人数</th>
+                            <th>真实名字</th>
+                            <th>手机号</th>
+                            <th>USDT余额</th>
+                            <th>客户总支出</th>
+                            <th>客户总收入</th>
+                            <th>注册时间</th>
+                            <th>认证状态</th>
+                            <th>高级认证状态</th>
+                            <th width="100">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<div class="add-subcat">
+    <form id="form1" class="layui-form" data-params='{"dataName":"member","key":"user_id","bind":true,"pid":"pid"}'  method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">分组名称</label>
+            <div class="layui-input-block">
+                <select name="group_id" placeholder="分组">
+                    <option value=""></option>
+                    {foreach $group as $val}
+                    <option value="{$val['group_id']}">{$val['group_name']}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">发布USDT数量</label>
+            <div class="layui-input-block">
+                <input type="text" name="usdt_num" placeholder="请输入USDT" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-block">
+                <input type="radio" name="type" value="1" title="发布USDT" checked>
+                <input type="radio" name="type" value="2" title="收回USDT">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>{{ item.user_id}}</td>
+        <td>{{ item.user_name}}</td>
+        <td>{{ item.group_name}}</td>
+        <td>{{ item.issue_usdt}}</td>
+        <td>{{ item.recover_usdt}}</td>
+        <td>{{ item.invite_num}}</td>
+        <td>{{ item.true_name}}</td>
+        <td>{{ item.user_phone }}</td>
+        <td>{{ item.dw_usdt }}</td>
+        <td>{{ item.pay_usdt }}</td>
+        <td>{{ item.income_usdt }}</td>
+        <td>{{ item.add_time }}</td>
+        <td>
+            {{#if (item.is_attestation == 0){ }}
+            未上传认证
+            {{# }else{ }}
+            已认证
+            {{# } }}
+        </td>
+        <td>
+            {{#if (item.is_examine == 0){ }}
+            未上传认证
+            {{# }else if(item.is_examine == 1){ }}
+            已认证
+            {{# }else if(item.is_examine == 2){ }}
+            待审核
+            {{# }else if(item.is_examine == 3){ }}
+            认证不通过
+            {{# } }}
+        </td>
+        <td>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"430px,300px","title":"编辑","data":"user_id={{ item.user_id }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>
+                    <i class="iconfont">&#xe653;</i>编辑用户
+                </button>
+            </div>
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>
