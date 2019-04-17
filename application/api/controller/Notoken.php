@@ -25,8 +25,15 @@ class Notoken extends BasicApi
      * @return \think\Response
      */
     public function btc_now(Request $request){
-        $btc_now = Db::table('dw_btc_now')->value('btc_now');
+        $btc_now = Db::table('dw_btc_now')->where(['id'=>2])->value('btc_now');
         $data = json_decode($btc_now,true);
+        $type =rand(1,2);
+        $num = rand(1,6);
+        if($type ==1){
+            $data['ticker']['sell'] = bcsub($data['ticker']['sell'],bcdiv($num,100,4),4);
+        }else{
+            $data['ticker']['sell'] = bcadd($data['ticker']['sell'],bcdiv($num,100,4),4);
+        }
 //        $number = rand(10,22);
 //        $number = bcdiv($number,100,2);
 //        $data['ticker']['sell'] = $data['ticker']['sell'],$number,2);

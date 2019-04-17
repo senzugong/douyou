@@ -4,7 +4,7 @@ use controller\BasicApi;
 use Workerman\Worker;
 use Workerman\Connection\AsyncTcpConnection;
 
-class Websocket extends BasicApi {
+class WebSocket extends BasicApi {
 
     public function test(){
         $worker = new Worker();

@@ -54,7 +54,7 @@ class Worker
                 }, [$worker, $this]);
             } elseif ($worker->id == 1) {
                 // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-                Timer::add(1, function ($worker, $sup) {
+                Timer::add(2, function ($worker, $sup) {
                     try {
                         // 定时产生RMZ
                         $sup->getresult();
