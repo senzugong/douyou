@@ -31,6 +31,10 @@ class Curl
      * @var array 请求头部
      */
     protected $header = [];
+    /**
+     * @var string 最后错误结果
+     */
+    public static $lastError;
 
     /**
      * 创建GET请求
@@ -120,7 +124,7 @@ class Curl
 
         $result = curl_exec($curl);
         if (false === $result) {
-            $error =  curl_errno($curl);
+            self::$lastError =  curl_errno($curl);
         } else {
             // 转换json数据
             $json = json_decode($result, true);
