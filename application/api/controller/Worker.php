@@ -82,41 +82,6 @@ class Worker
                     }
                 }, [$worker, $this]);
             }
-//elseif($worker->id ==3){
-//                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-//                Timer::add(61, function ($worker, $sup) {
-//                    try {
-//                        // 定时
-//                        $sup->kline();
-//                        $sup->kline1();
-//                        $sup->kline2();
-//                        $sup->kline3();
-//
-//                    } catch (\Exception $exception) {
-//                        // 运行错误处理
-//                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
-//                    } catch (\Error $error) {
-//                        // 运行错误处理
-//                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
-//                    }
-//                }, [$worker, $this]);
-//            }elseif($worker->id == 4){
-//                // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-//                Timer::add(300, function ($worker, $sup) {
-//                    try {
-////                        $sup->kline4();
-////                        $sup->kline5();
-////                        $sup->kline6();
-////                        $sup->kline7();
-//                    } catch (\Exception $exception) {
-//                        // 运行错误处理
-//                        Log::write("HotWorker Exception Message: " . $exception->getMessage() . "\tFile: " . $exception->getFile() . "\tLine: " . $exception->getLine(), 'error');
-//                    } catch (\Error $error) {
-//                        // 运行错误处理
-//                        Log::write("HotWorker Error Message: " . $error->getMessage() . "\tFile: " . $error->getFile() . "\tLine: " . $error->getLine(), 'error');
-//                    }
-//                }, [$worker, $this]);
-//            }
 
         };
         // 运行worker
@@ -140,78 +105,6 @@ class Worker
             $this->autoOrder();
         }
     }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1min&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//       Db::table('dw_btc_klind')->where(['kname'=>'1min'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline1(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=5min&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'5min'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline2(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=15min&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'15min'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline3(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=30min&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'30min'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline4(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1day&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'1day'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline5(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1week&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'1week'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline6(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=1hour&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'1hour'])->update(['kdata'=>json_encode($data)]);
-//    }
-//    /**
-//     * 定时获取k线图
-//     */
-//    public function kline7(){
-//        $url = 'http://api.zb.cn/data/v1/kline?market=btc_usdt&type=4hour&size=100';
-//        // 获取数据
-//        $data = Curl::get($url);
-//        Db::table('dw_btc_klind')->where(['kname'=>'4hour'])->update(['kdata'=>json_encode($data)]);
-//    }
     /**
      * @throws \think\Exception
      * @throws \think\db\exception\DataNotFoundException
@@ -246,82 +139,85 @@ class Worker
         // 获取数据
         $data = Curl::get($url);
         $btc_price = $data['ticker']['sell'];//当前btc价格
-        $now = Db::table('dw_btc_now')->find();
-        if(!$btc_price){
-            $btc_now = Db::table('dw_btc_now')->value('btc_now');
-            $data = json_decode($btc_now,true);
-            $btc_price = $data['ticker']['sell'];
-        }else{
+//        if(!$btc_price){
+//                $btc_now = Db::table('dw_btc_now')->value('btc_now');
+//                $data = json_decode($btc_now,true);
+//                $num = rand(10,99);
+//                $type = rand(1,2);
+//                if($type ==1){
+//                    $btc_price = bcsub($data['ticker']['sell'],bcdiv($num,100,4),4);
+//                }else{
+//                    $btc_price = bcadd($data['ticker']['sell'],bcdiv($num,100,4),4);
+//                }
+//        }else{
+
             $result = $this->is_controller($btc_price);
             if($result){
                 $data['ticker']['sell'] = $result;
-            }else{
-                $btc_price = $btc_price;//当前btc价格
-            }
         }
-        Db::table('dw_btc_now')->where(['id'=>$now['id']])->update(['btc_now'=>json_encode($data),'add_time'=>time()]);
-        $time = time();
-        $list = Db::table('dw_btc_order')->where("end_time = $time and type = 1 and  is_win = 0")->select();
-        foreach ($list as &$v) {
-            $user = Db::table('dw_users')->where(['user_id' => $v['user_id']])->find();
-            $recharge = Db::table('dw_basic_time')->where(['id' => $v['time_id']])->value('proportion');//找赔率
-            if ($btc_price >= $v['buy_price']) {//中奖的人数
-                if ($v['style'] == 1) { //买涨
-                    Db::startTrans();
-                    try {
-                        $win = bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
-                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
-                        // 添加日志
-                        UsdtLog::create([
-                            'user_id' => $v['user_id'],
-                            'log_content' => '时间模式',
-                            'type' => 2,
-                            'log_status' => 5,
-                            'chance_usdt' => $win,
-                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
-                            'add_time' => time(),
-                        ]);
-                        // 提交
-                        Db::commit();
-                    } catch (\Exception $exception) {
-                        // 回滚
-                        Db::rollback();
-                    }
-                } else {
-                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['result_price'=>$btc_price,'is_win' => 2]);
-                }
-            } elseif ($btc_price <= $v['buy_price']) {
-                if ($v['style'] == 2) { //买涨
-                    Db::startTrans();
-                    try {
-                        $win =bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
-                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
-                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
-                        // 添加日志
-                        UsdtLog::create([
-                            'user_id' => $v['user_id'],
-                            'log_content' => '时间模式',
-                            'type' => 2,
-                            'log_status' => 5,
-                            'chance_usdt' => $win,
-                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
-                            'add_time' => time(),
-                        ]);
-                        // 提交
-                        Db::commit();
-                    } catch (\Exception $exception) {
-                        // 回滚
-                        Db::rollback();
-                    }
-                } else {
-                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$btc_price]);
-                }
-            } else {
-                Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$btc_price]);
-            }
-
-        }
+        Db::table('dw_btc_now')->where(['id'=>2])->update(['btc_now'=>json_encode($data),'add_time'=>time()]);
+//        $time = time();
+//        $list = Db::table('dw_btc_order')->where("end_time = $time and type = 1 and  is_win = 0")->select();
+//        foreach ($list as &$v) {
+//            $user = Db::table('dw_users')->where(['user_id' => $v['user_id']])->find();
+//            $recharge = Db::table('dw_basic_time')->where(['id' => $v['time_id']])->value('proportion');//找赔率
+//            if ($btc_price >= $v['buy_price']) {//中奖的人数
+//                if ($v['style'] == 1) { //买涨
+//                    Db::startTrans();
+//                    try {
+//                        $win = bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
+//                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
+//                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
+//                        // 添加日志
+//                        UsdtLog::create([
+//                            'user_id' => $v['user_id'],
+//                            'log_content' => '时间模式',
+//                            'type' => 2,
+//                            'log_status' => 5,
+//                            'chance_usdt' => $win,
+//                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
+//                            'add_time' => time(),
+//                        ]);
+//                        // 提交
+//                        Db::commit();
+//                    } catch (\Exception $exception) {
+//                        // 回滚
+//                        Db::rollback();
+//                    }
+//                } else {
+//                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['result_price'=>$btc_price,'is_win' => 2]);
+//                }
+//            } elseif ($btc_price <= $v['buy_price']) {
+//                if ($v['style'] == 2) { //买涨
+//                    Db::startTrans();
+//                    try {
+//                        $win =bcmul($v['usdt_fee'], bcdiv($recharge, 100, 2), 4);
+//                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1,'result_price'=>$btc_price, 'win_price' => $win]);
+//                        Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
+//                        // 添加日志
+//                        UsdtLog::create([
+//                            'user_id' => $v['user_id'],
+//                            'log_content' => '时间模式',
+//                            'type' => 2,
+//                            'log_status' => 5,
+//                            'chance_usdt' => $win,
+//                            'dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4),
+//                            'add_time' => time(),
+//                        ]);
+//                        // 提交
+//                        Db::commit();
+//                    } catch (\Exception $exception) {
+//                        // 回滚
+//                        Db::rollback();
+//                    }
+//                } else {
+//                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$btc_price]);
+//                }
+//            } else {
+//                Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$btc_price]);
+//            }
+//
+//        }
     }
 
     /**
@@ -351,7 +247,7 @@ class Worker
                     Db::startTrans();
                     try {
                         $win = bcmul($v['order_fee'], 0.8, 4);
-                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$btc_price, 'end_time' => time()]);
+                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$v['rise_price'], 'end_time' => time()]);
                         Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
@@ -370,7 +266,7 @@ class Worker
                         Db::rollback();
                     }
                 } elseif ($btc_price <= $v['fill_price']) {
-                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$btc_price, 'end_time' => time()]);
+                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2,'result_price'=>$v['fill_price'], 'end_time' => time()]);
                 }
             }
             if($v['style']==2){//跌
@@ -378,7 +274,7 @@ class Worker
                     Db::startTrans();
                     try {
                         $win =bcmul($v['order_fee'], 0.8, 4);
-                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$btc_price, 'end_time' => time()]);
+                        Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 1, 'win_price' => $win,'result_price'=>$v['rise_price'], 'end_time' => time()]);
                         Db::table('dw_users')->where(['user_id' => $v['user_id']])->update(['dw_usdt' => bcadd(bcadd($win,$v['order_fee'],4), $user['dw_usdt'], 4)]);
                         // 添加日志
                         UsdtLog::create([
@@ -397,7 +293,7 @@ class Worker
                         Db::rollback();
                     }
                 } elseif ($btc_price >= $v['fill_price']) {
-                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2, 'result_price'=>$btc_price,'end_time' => time()]);
+                    Db::table('dw_btc_order')->where(['order_id' => $v['order_id']])->update(['is_win' => 2, 'result_price'=>$v['fill_price'],'end_time' => time()]);
                 }
             }
 
@@ -561,7 +457,7 @@ class Worker
             $fill = Db::table('dw_btc_order')->where(" type=2 and is_win = 0 and add_time <= $time  and style = 2")->sum('order_fee');
             if($rise == 0 && $fill != 0 ){
                 $win_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('fill_price desc')->value('rise_price');
-                $num = bcdiv(round(80, 120),100,4);
+                $num = bcdiv(rand(80, 120),100,4);
                 $btc_price1 = bcadd($btc_price,$num,4);
                 if($btc_price1 <= $win_price){
                     return $btc_price;
@@ -570,7 +466,7 @@ class Worker
                 }
             }elseif($rise != 0 && $fill == 0 ){
                 $win_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time and style = 1")->order('rise_price desc')->value('rise_price');
-                $num = bcdiv(round(80, 120),100,4);
+                $num = bcdiv(rand(80, 120),100,4);
                 $btc_price1 = bcsub($btc_price,$num,4);
                 if($btc_price1 >= $win_price){
                     return $btc_price;
@@ -581,24 +477,24 @@ class Worker
             if($result['type'] == 1){
             if($rise > $fill){//吃大赔小
                 $btc_price = Db::table('dw_btc_order')->where("type=2  and is_win = 0 and add_time <= $time and style = 1")->order('rise_price desc')->value('fill_price');
-                $num = bcdiv(round(80, 120),100,4);
+                $num = bcdiv(rand(80, 120),100,4);
                 $btc_price = bcsub($btc_price,$num,4);
                 return $btc_price;
             }else{
                 $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('fill_price desc')->value('fill_price');
-                $num = bcdiv(round(80, 120),100,4);
+                $num = bcdiv(rand(80, 120),100,4);
                 $btc_price = bcadd($btc_price,$num,4);
                 return $btc_price;
             }
             }else{//吃小赔大
                 if($rise > $fill){
                     $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style =1")->order('fill_price desc')->value('rise_price');
-                    $num = bcdiv(round(80, 120),100,4);
+                    $num = bcdiv(rand(80, 120),100,4);
                     $btc_price = bcadd($btc_price,$num,4);
                     return $btc_price;
                 }else{
                     $btc_price = Db::table('dw_btc_order')->where("type=2 and is_win = 0 and add_time <= $time  and style = 2")->order('rise_price desc')->value('rise_price');
-                    $num = bcdiv(round(80, 120),100,4);
+                    $num = bcdiv(rand(80, 120),100,4);
                     $btc_price = bcsub($btc_price,$num,4);
                     return $btc_price;
                 }

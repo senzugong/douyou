@@ -45,12 +45,14 @@ class Notoken extends BasicApi
      * @throws \think\exception\DbException
      */
     public function index(Request $request){
-        $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
-        $data = Curl::get($url);
-        $price_now = $data['ticker']['sell'];//当前的btc价格（出售）
+//        $url = "http://api.zb.cn/data/v1/ticker?market=btc_usdt";
+//        $data = Curl::get($url);
+        $data = Db::table('dw_btc_now')->where(['id'=>2])->value('btc_now');
+//        var_dump($data);die;
+        $price_now1 = json_decode($data,true);//当前的btc价格（出售）
+        $price_now = $price_now1['ticker']['sell'];
         $btc_price = Db::table('dw_btc')->order('btc_id desc')->value('btc_price');//数据库中的btc价格
         $list['recharge'] =  bcmul(bcdiv(bcsub($price_now,$btc_price,4),$price_now,4),100,2);
-
         if(!$list['recharge'] || !$price_now){
             $list['recharge'] = 0;
         }

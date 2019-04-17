@@ -34,7 +34,7 @@ class Member extends BasicAdmin
         // 实例Query对象
         $db = User::alias('a')
             ->join('dw_users b', 'b.user_id = a.invite_user', 'left')
-            ->field('a.*, b.user_name as invite_name')
+            ->field('a.*, b.true_name as invite_name')
             ->order('a.add_time', 'desc');
         // 应用搜索条件
         foreach (['user_name', 'user_phone', 'role_id'] as $key) {
