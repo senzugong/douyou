@@ -58,12 +58,9 @@ class MallValidate extends Validate
      */
     protected function checkUsdtnum($value,$rule,$data){
         $userInfo = request()->userInfo;
-        if($data['type'] ==1){ // 出售usdt
-            if($value > bcmul($userInfo['dw_usdt'],1.02,4)){
-                return '你的账户usdt不足!';
-            }else{
-                return true;
-            }
+        // 出售usdt
+        if($userInfo['dw_usdt'] < bcmul($value,1.02,4)){
+            return '你的账户usdt不足!';
         }else{
             return true;
         }
