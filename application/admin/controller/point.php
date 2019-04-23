@@ -13,6 +13,7 @@ use controller\BasicAdmin;
 use service\DataService;
 use service\LogService;
 use think\Db;
+use think\Request;
 
 /**
  * Class Raward
@@ -43,19 +44,29 @@ class Point extends BasicAdmin
         // 实例化并显示
         return parent::_list($db);
     }
-     protected function _data_filter(&$data) {
-         if ($this->request->action() == 'index') {
-             foreach ($data as &$v) {
-                 $v['time'] = 1;
-             }
-         }
-     }
+//     protected function _data_filter(&$data) {
+//         if ($this->request->action() == 'index') {
+//             foreach ($data as &$v) {
+//                 $v['time'] = 1;
+//             }
+//         }
+//     }
 
     /**
      * 编辑
      * @return array|string
      */
-    public function edit() {
+    public function edit(Request $request) {
+        if ($request->isPost()) {
+            $point = $request->post('point');
+//            $time = $request->post('time',1);
+           $result = Db::table('dw_slip_point')->where(['id'=>1])->update(['point'=>$point,'update_time'=>time()]);
+           if($result){
+              $this->success('成功');
+           }else{
+               $this->error('失败');
+           }
+        }
         return $this->_form($this->table,'index', '编辑成功','');
     }
 }

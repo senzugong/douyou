@@ -20,6 +20,15 @@
                     </div>
                     <div class="layui-inline">
                         <div class="layui-input-inline">
+                            <select name="role_id">
+                                <option value=""></option>
+                                <option value="0">普通用户</option>
+                                <option value="1">业务员</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
                             <select name="group_id" placeholder="分组">
                                 <option value=""></option>
                                 {foreach $group as $val}
@@ -43,12 +52,12 @@
                         <tr>
                             <th width="80"><span class="order" data-params='{"field":"user_id","sort":"asc"}'>序号</span></th>
 
-                            <th>用户账号</th>
+                            <th>用户昵称</th>
+                            <th>真实名字</th>
                             <th>用户分组</th>
                             <th>总发行USDT</th>
                             <th>总收回USDT</th>
                             <th>邀请人数</th>
-                            <th>真实名字</th>
                             <th>手机号</th>
                             <th>USDT余额</th>
                             <th>客户总支出</th>
@@ -56,6 +65,7 @@
                             <th>注册时间</th>
                             <th>认证状态</th>
                             <th>高级认证状态</th>
+                            <th>是否是业务员</th>
                             <th width="100">操作</th>
                         </tr>
                         </thead>
@@ -106,11 +116,11 @@
     <tr>
         <td>{{ item.user_id}}</td>
         <td>{{ item.user_name}}</td>
+        <td>{{ item.true_name}}</td>
         <td>{{ item.group_name}}</td>
         <td>{{ item.issue_usdt}}</td>
         <td>{{ item.recover_usdt}}</td>
         <td>{{ item.invite_num}}</td>
-        <td>{{ item.true_name}}</td>
         <td>{{ item.user_phone }}</td>
         <td>{{ item.dw_usdt }}</td>
         <td>{{ item.pay_usdt }}</td>
@@ -132,6 +142,13 @@
             待审核
             {{# }else if(item.is_examine == 3){ }}
             认证不通过
+            {{# } }}
+        </td>
+        <td>
+            {{#if (item.role_id == 0){ }}
+            否
+            {{# }else if(item.role_id == 1){ }}
+            是
             {{# } }}
         </td>
         <td>

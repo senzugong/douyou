@@ -13,7 +13,7 @@
                         <tr>
                             <th class="txt-center">序号</th>
                             <th>滑动的点位（下降2个点位则填如:-2）</th>
-                            <th>有效时长(不填为下一秒)</th>
+                            <!--<th>有效时长(不填为下一秒)</th>-->
                             <th width="90">操作</th>
                         </tr>
                         </thead>
@@ -34,12 +34,12 @@
                 <input type="text" name="point" required jq-verify="required" jq-error="请输入点位" placeholder="请输入点位" autocomplete="off" class="layui-input ">
             </div>
         </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">有效时长</label>
-            <div class="layui-input-block">
-                <input type="text" name="time" required jq-verify="required" jq-error="请输入点位" placeholder="请输入点位" autocomplete="off" class="layui-input ">
-            </div>
-        </div>
+        <!--<div class="layui-form-item">-->
+            <!--<label class="layui-form-label">有效时长</label>-->
+            <!--<div class="layui-input-block">-->
+                <!--<input type="text" name="time" required jq-verify="required" jq-error="请输入点位" placeholder="请输入点位" autocomplete="off" class="layui-input ">-->
+            <!--</div>-->
+        <!--</div>-->
         <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" jq-submit jq-filter="submit">立即提交</button>
@@ -52,7 +52,7 @@
     <tr>
         <td class="txt-center">{{ item.id}}</td>
         <td>{{ item.point}}</td>
-        <td>{{ item.time}}</td>
+        <!--<td>{{ item.time}}</td>-->
         <td>
             <div class="layui-btn-group">
                 <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"450px,400px","title":"编辑","data":"id={{ item.id }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>

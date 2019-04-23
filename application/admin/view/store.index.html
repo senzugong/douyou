@@ -116,10 +116,10 @@
         <td>
             <div class="layui-btn-group">
                 {{#if (item.is_business == 2){ }}
-                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1","method":"post","confirm":"true"}'>
+                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1&field=is_business","method":"post","confirm":"true"}'>
                     <i class="layui-icon">&#x1005;</i>通过
                 </button>
-                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=3","method":"post","confirm":"true"}'>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=3&field=is_business","method":"post","confirm":"true"}'>
                     <i class="iconfont">&#xe626;</i>不通过
                 </button>
                 {{# } }}

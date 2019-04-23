@@ -28,12 +28,12 @@ class Issue extends BasicAdmin
         $db = Db::name($this->table)
             ->alias('a')
             ->join('dw_group b', 'b.group_id = a.group_id and b.status=1', 'left')
-            ->where('role_id', 1)
+//            ->where('role_id', 1)
             ->field('a.*,b.group_name');
         // 应用搜索条件
-        foreach (['user_name', 'user_phone', 'group_id'] as $key) {
+        foreach (['user_name', 'user_phone', 'group_id', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
-                $key == 'group_id' ? $db->where('a.'.$key, $get[$key]) :$db->where($key, 'like', "%{$get[$key]}%");
+                $key == 'group_id' || $key == 'role_id' ? $db->where('a.'.$key, $get[$key]) :$db->where($key, 'like', "%{$get[$key]}%");
             }
         }
         // 分组

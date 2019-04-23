@@ -123,7 +123,7 @@ class Member extends BasicAdmin
         if($this->request->action() == "index"){
             foreach($data as $k=>&$v){
                 $data[$k]['add_time'] = date('Y-m-d H:m:s',$v['add_time']);
-                $v['user_avatar'] = $v['user_avatar'] = $v['user_avatar'] ? '/'.$v['user_avatar'] : '';
+                $v['user_avatar'] = $v['user_avatar'] ? '/'.$v['user_avatar'] : '';
                 $v['invite_name'] = $v['invite_name'] ?: '';
 
                 // 冻结资金
