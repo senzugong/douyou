@@ -96,7 +96,7 @@ class MallValidate extends Validate
         }
         // 用户出售usdt
         $overNum = bcsub($usdtMall['usdt_num'], $usdtMall['over_usdt'], 2);
-        if (bcmul($overNum,1.02,4) > $userInfo['dw_usdt']) {
+        if ($usdtMall['type'] == 1 && bcmul($overNum,1.02,4) > $userInfo['dw_usdt']) {
             return '你的账户usdt不足!';
         }
         return true;

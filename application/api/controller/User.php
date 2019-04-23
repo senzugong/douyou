@@ -19,6 +19,7 @@ use controller\BasicApi;
 use app\api\validate\UserValidate;
 use app\common\model\UserAttestation;
 use think\Config;
+use think\Db;
 use think\Request;
 
 class User extends BasicApi
@@ -45,6 +46,13 @@ class User extends BasicApi
             $userInfo['is_wallet'] = 1;
         }else{
             $userInfo['is_wallet'] = 0;
+        }
+        if($userInfo['is_examine'] == 1 || $userInfo['is_examine']==2){
+            $examine_list =  Db::table('dw_user_examine')->where(['user_id'=>$userInfo['user_id']])->find();
+            $userInfo['img1'] = $examine_list['img1'] ? Config::get('image_url') . $examine_list['img1'] : '';
+            $userInfo['img2'] = $examine_list['img2'] ? Config::get('image_url') . $examine_list['img2'] : '';
+            $userInfo['img3'] = $examine_list['img3'] ? Config::get('image_url') . $examine_list['img3'] : '';
+
         }
         //收入
         $rise = UsdtLog::where(['type'=>2,'user_id'=>$userInfo['user_id']])->whereTime('add_time', 'today')->select();
@@ -343,6 +351,97 @@ class User extends BasicApi
         return $this->response('4444');
     }
 
+    /**商家认证
+     * @param Request $request
+     * @return \think\Response
+     */
+    public function business(Request $request){
+        $usdt_num = $request->post('usdt_num',200);
+        $userInfo = $request->userInfo;
+        if($usdt_num >$userInfo['dw_usdt']){
+            return $this->response('您的余额不足！',304);
+        }
+        $change_dw = bcsub($userInfo['dw_usdt'],$usdt_num,4);
+        $userInfo->save(['dw_usdt'=>$change_dw,'is_business'=>2,'business_usdt'=>$usdt_num]);
+        return $this->response();
+    }
+    /**商家认证取消
+     * @param Request $request
+     * @return \think\Response
+     */
+    public function cancel_business(Request $request){
+        $userInfo = $request->userInfo;
+       if($userInfo['is_business'] != 1){
+           return $this->response('你还不是认证商家！',304);
+       }
+            $change_dw = bcadd($userInfo['dw_usdt'],$userInfo['business_usdt'],4);
+            $userInfo->save(['dw_usdt'=>$change_dw,'is_business'=>0,'business_usdt'=>0]);
+        return $this->response();
+    }
+    /**
+     * @param Request $request邀请详情
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function invite(Request $request){
+        $userInfo = $request->userInfo;
+        //邀请的好友集合
+        $ids = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->group('user_id')->field('GROUP_CONCAT(user_id) as ids')->find();
+        if($ids){
+            $result = Db::table('dw_invite_reward')->where(['user_id'=>$userInfo['user_id']])->order('id desc')->find();
+            if($result){
+                $list = Db::table('dw_btc_order')->where(" order_id > {$result['order_id']} and user_id IN ($ids)")->select();
+            }else{
+                $list = Db::table('dw_btc_order')->where("user_id IN ($ids)")->select();
+            }
+            $reward = 0.0000;
+            foreach($list as &$v){
+                $reward = bcadd($reward,bcdiv($v['sx_fee'],2,4),4);
+            }
+        $list['invite_usdt']  =  $reward;
+        }else{
+            $list['invite_usdt'] = 0.0000;
+        }
+        $list['invite_count'] = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->count();
+        return $this->response($list);
+    }
+    public function invite_reward(Request $request){
+        $userInfo = $request->userInfo;
+        $reward = $request->post('reward');
+        $order = Db::table('dw_btc_order')->order('order_id desc')->find();
+        if($reward <= 0){
+            return $this->response('领取金额必须大于0',304);
+        }
+        Db::startTrans();
+        try{
+            $change_usdt = bcadd($reward,$userInfo['dw_usdt'],4);
+            $userInfo->save(['dw_usdt'=>$change_usdt]);
+            // 添加日志
+            Db::table('dw_invite_reward')->insert([
+                'user_id'=> $userInfo->user_id,
+                'order_id'=>$order['order_id'],
+                'add_time'=> time(),
+            ]);
+            // 添加日志
+            UsdtLog::create([
+                'user_id'=> $userInfo->user_id,
+                'log_content'=> '邀请好友奖励',
+                'type'=> 2,
+                'log_status'=>9,
+                'chance_usdt'=>$reward,
+                'dw_usdt'=> $userInfo->dw_usdt,
+                'add_time'=> time(),
+            ]);
+            Db::commit();
+            return $this->response();
+        } catch (\Exception $exception) {
+            // 回滚
+            Db::rollback();
+            return $this->response('领取失败'.$exception->getMessage(),304);
+        }
+    }
     /**
      * 退出登录
      * @param Request $request

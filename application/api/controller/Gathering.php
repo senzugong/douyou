@@ -96,16 +96,16 @@ class Gathering extends BasicApi
         if($is_default==1){
             if($type_id == 1){
                 UserBank::where(['user_id'=>$userInfo['user_id'],'bank_id'=>$gathering_id])->update(['status'=>1]);
-                UserBank::where("user_id={$userInfo['user_id']} and bank_id !=$gathering_id")->update(['status'=>0]);
+                UserBank::where("user_id={$userInfo['user_id']} and status !=2 and  bank_id !=$gathering_id")->update(['status'=>0]);
             }else{
                 UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>$type_id,'gathering_id'=>$gathering_id])->update(['status'=>1]);
-                UserGathering::where("user_id={$userInfo['user_id']} and type =$type_id  and gathering_id !=$gathering_id")->update(['status'=>0]);
+                UserGathering::where("user_id={$userInfo['user_id']} and status !=2 and type =$type_id  and gathering_id !=$gathering_id")->update(['status'=>0]);
             }
         }else{
             if($type_id == 1){
                 UserBank::where(['user_id'=>$userInfo['user_id'],'bank_id'=>$gathering_id])->update(['status'=>0]);
             }else{
-                UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>$type_id,'gathering_id'=>$gathering_id])->update(['status'=>0]);
+                UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>$type_id,'gathering_id'=>$gathering_id])->where("status !=2" )->update(['status'=>0]);
             }
         }
 
@@ -125,9 +125,9 @@ class Gathering extends BasicApi
         $type_id = $request->post('type_id');
         $gathering_id = $request->post('payment_id');
         if($type_id == 1){
-            UserBank::where(['user_id'=>$userInfo['user_id'],'bank_id'=>$gathering_id])->delete();
+            UserBank::where(['user_id'=>$userInfo['user_id'],'bank_id'=>$gathering_id])->update(['status'=>2]);
         }else{
-            UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>$type_id,'gathering_id'=>$gathering_id])->delete();
+            UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>$type_id,'gathering_id'=>$gathering_id])->update(['status'=>2]);
         }
         return $this->response();
     }
@@ -146,12 +146,14 @@ class Gathering extends BasicApi
         }
         //银行卡列表
        $list['bank'] = $userInfo->userBank()
+           ->where('status != 2')
            ->select();
         foreach($list['bank'] as &$v){
             $v['type'] =1;
         }
         //微信支付宝列表
        $list['gathering'] = $userInfo->userGathering()
+           ->where('status != 2')
            ->select();
         foreach($list['gathering'] as &$v){
             $v['gathering_img'] =  Config::get('image_url').$v['gathering_img'];

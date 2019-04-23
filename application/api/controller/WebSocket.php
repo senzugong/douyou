@@ -7,6 +7,7 @@ use Workerman\Connection\AsyncTcpConnection;
 class WebSocket extends BasicApi {
 
     public function test(){
+        echo 111;die;
         $worker = new Worker();
         $worker->onWorkerStart = function($worker){
 

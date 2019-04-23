@@ -28,7 +28,7 @@ class Notoken extends BasicApi
         $btc_now = Db::table('dw_btc_now')->where(['id'=>2])->value('btc_now');
         $data = json_decode($btc_now,true);
         $type =rand(1,2);
-        $num = rand(1,6);
+        $num = rand(1,3);
         if($type ==1){
             $data['ticker']['sell'] = bcsub($data['ticker']['sell'],bcdiv($num,100,4),4);
         }else{

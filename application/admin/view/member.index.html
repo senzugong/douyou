@@ -10,7 +10,7 @@
 
                     <div class="layui-inline">
                         <div class="layui-input-inline">
-                            <input class="layui-input" name="user_name" placeholder="用户名">
+                            <input class="layui-input" name="true_name" placeholder="用户名">
                         </div>
                     </div>
                     <div class="layui-inline">
@@ -43,12 +43,15 @@
                             <th width="80"><span class="order" data-params='{"field":"id","sort":"asc"}'>序号</span></th>
 
                             <th>用户账号</th>
-                            <th>邀请人</th>
-                            <th>邀请码</th>
                             <th>真实名字</th>
+                            <th>邀请码</th>
+                            <th>邀请人</th>
                             <th>手机号</th>
                             <th>性别</th>
                             <th>USDT余额</th>
+                            <th>发布冻结USDT</th>
+                            <th>提现冻结USDT</th>
+                            <th>商家保证金</th>
                             <th>注册时间</th>
                             <th>认证状态</th>
                             <th>高级认证状态</th>
@@ -71,9 +74,9 @@
     <tr>
         <td>{{ item.user_id}}</td>
         <td>{{ item.user_name}}</td>
-        <td>{{ item.invite_name}}</td>
-        <td>{{ item.invite_code}}</td>
         <td>{{ item.true_name}}</td>
+        <td>{{ item.invite_code}}</td>
+        <td>{{ item.invite_name}}</td>
         <td>{{ item.user_phone }}</td>
         <td>
             {{# if (item.sex==1){ }}
@@ -85,6 +88,9 @@
             {{# } }}
         </td>
         <td>{{ item.dw_usdt }}</td>
+        <td>{{ item.sell_freeze }}</td>
+        <td>{{ item.fetch_freeze }}</td>
+        <td>{{ item.business_usdt }}</td>
         <td>{{ item.add_time }}</td>
         <td>
             {{#if (item.is_attestation == 0){ }}

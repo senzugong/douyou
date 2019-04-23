@@ -263,6 +263,11 @@ class Wave extends BasicApi
         $page = $request->post('page',1);
         $list = Db::table('dw_btc_order')->where("user_id={$userInfo['user_id']} and type=$type and is_win !=0")->order('order_id desc')->page($page)->select();
         foreach($list as &$v){
+            if($v['is_win'] ==1){
+                $v['result_price'] = $v['rise_price'];
+            }else{
+                $v['result_price'] = $v['fill_price'];
+            }
             $v['add_time'] = $this->getTime($v['add_time']);
             $v['end_time'] =$v['end_time']? $this->getTime($v['end_time']):'';
         }
@@ -347,6 +352,28 @@ class Wave extends BasicApi
         }
     }
 
+    /**
+     * @param Request $request中奖名单
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function reward_list(Request $request){
+        $page = $request->post('page',1);
+        $reward_list = Db::table('dw_btc_order')->alias('a')
+            ->join('dw_users b','a.user_id = b.user_id')
+            ->where("a.lucky_usdt >0")
+            ->field('a.lucky_usdt,a.add_time,b.user_name,b.user_phone')
+            ->limit(20)->order('a.order_id desc')->page($page)->select();
+      foreach($reward_list as &$v){
+          $v['add_time']  = $this->getTime($v['add_time']);
+          if(!$v['user_name']){
+              $v['user_name'] = substr_replace($v['user_phone'] , '****', 3, 4);
+          }
+      }
+        return $this->response($reward_list);
+    }
 
     /**
      * 返回猜涨跌规则

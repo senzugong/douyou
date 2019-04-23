@@ -36,10 +36,11 @@ class Order extends BasicAdmin
         $get = $this->request->get();
         // 实例Query对象
         $db = UsdtOrder::alias('a')
-            ->join('dw_users b', 'b.user_id=a.user_id')
-            ->join('dw_users d', 'd.user_id=a.mall_user_id')
-            ->join('dw_user_gathering c', 'c.gathering_id=a.gathering_id')
-            ->field('a.*,b.user_name,b.true_name,d.user_name as mall_user,d.true_name as mall_true_user,c.gathering_name,c.gathering_img')
+            ->join('dw_users b', 'b.user_id=a.user_id', 'left')
+            ->join('dw_users d', 'd.user_id=a.mall_user_id', 'left')
+            ->join('dw_users f', 'f.user_id=b.invite_user', 'left')
+            ->join('dw_user_gathering c', 'c.gathering_id=a.gathering_id', 'left')
+            ->field('a.*,b.user_name,b.true_name,d.user_name as mall_user,d.true_name as mall_true_user,c.gathering_name,c.gathering_img, f.true_name as invite_name')
             ->order('order_id desc');
         // 应用搜索条件
         foreach (['user_id', 'status', 'user_phone'] as $key) {
@@ -54,6 +55,7 @@ class Order extends BasicAdmin
         if ($this->request->action() == 'index') {
             foreach ($data as $val) {
                 $val['gathering_img'] = $val['gathering_img'] ? Config::get('image_url') . $val['gathering_img'] : '';
+                $val['invite_name'] = $val['invite_name'] ?: '';
             }
         }
     }
@@ -134,7 +136,17 @@ class Order extends BasicAdmin
                 // 取消订单
                 $order->save(['status'=>4]);
                 // 返还usdt到挂单
-                $mall->save(['over_usdt' => $usdt]);
+//                $mall->save(['over_usdt' => $usdt]);
+                if($mall['status'] == 2 ){
+                    $mall->save(['over_usdt' => $usdt]);
+                    if($mall['over_usdt'] > 0){
+                        $mall->save(['status' => 1]);
+                    }else{
+                        $mall->save(['status' =>0]);
+                    }
+                }else{
+                    $mall->save(['over_usdt' => $usdt]);
+                }
                 // 取消充值订单
                 UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 2]);
                 // 消息通知（发布用户）

@@ -8,6 +8,8 @@
 
 namespace app\admin\controller;
 
+use app\common\model\UsdtChangelog;
+use app\common\model\UsdtMall;
 use controller\BasicAdmin;
 use service\DataService;
 use service\LogService;
@@ -37,7 +39,7 @@ class Member extends BasicAdmin
             ->field('a.*, b.true_name as invite_name')
             ->order('a.add_time', 'desc');
         // 应用搜索条件
-        foreach (['user_name', 'user_phone', 'role_id'] as $key) {
+        foreach (['true_name', 'user_phone', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
                 $key == 'role_id' ? $db->where('a.'.$key, $get[$key]) :$db->where('a.'.$key, 'like', "%{$get[$key]}%");
             }
@@ -107,6 +109,23 @@ class Member extends BasicAdmin
                 $data[$k]['add_time'] = date('Y-m-d H:m:s',$v['add_time']);
                 $v['user_avatar'] = $v['user_avatar'] = $v['user_avatar'] ? '/'.$v['user_avatar'] : '';
                 $v['invite_name'] = $v['invite_name'] ?: '';
+
+                // 冻结资金
+                $sell_freeze = '0.00';
+                $usdtMall = UsdtMall::where(['user_id'=> $v['user_id']])
+                    ->whereIn('status', [0, 1])
+                    ->select();
+                foreach ($usdtMall as $value) {
+                    $sell_freeze = bcadd($sell_freeze, bcsub($value['usdt_num'], $value['over_usdt'], 2), 2);
+                }
+                $v['sell_freeze'] = $sell_freeze;
+                $fetch_freeze = '0.00';
+                $usdtChange = UsdtChangelog::where(['user_id'=> $v['user_id'], 'type'=> 2, 'status'=> 0])
+                    ->select();
+                foreach ($usdtChange as $value) {
+                    $fetch_freeze = bcadd($fetch_freeze, $value['usdt_num'], 2);
+                }
+                $v['fetch_freeze'] = $fetch_freeze;
             }
         }
     }
