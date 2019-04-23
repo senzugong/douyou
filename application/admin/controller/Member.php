@@ -68,21 +68,37 @@ class Member extends BasicAdmin
     {
         $sql = Db::table('dw_users')->alias('a')
             ->join('dw_user_examine b','b.user_id = a.user_id')
-            ->field('a.user_id, a.user_name, a.true_name, a.card_num, a.is_examine, b.img1, b.img2, b.img3, b.status');
+            ->field('a.user_id, a.user_name, a.true_name, a.card_num, a.is_examine, b.img1, b.img2, b.img3, b.status, b.examine_id')
+            ->order('b.examine_id desc');
         if ($this->request->isPost()) {
-            $result = $sql->where(['a.user_id'=> $this->request->post('user_id')])
-                ->update([
-                    'b.status'=> $this->request->post('status'),
-                    'a.is_examine'=> $this->request->post('status') == 1 ? 1 : 3,
-                ]);
+            $userExamine = $sql->find();
+            Db::startTrans();
+            try {
+                Db::table('dw_user_examine')->where(['examine_id'=> $userExamine['examine_id']])
+                    ->update([
+                        'b.status'=> $this->request->post('status'),
+                    ]);
+                Db::table('dw_users')
+                    ->where(['user_id'=> $this->request->post('user_id')])
+                    ->update([
+                        'is_examine'=> $this->request->post('status') == 1 ? 1 : 3,
+                    ]);
+                Db::table('dw_users')
+                    ->where(['user_id'=> $this->request->post('user_id')])
+                    ->setInc('complete_rate',10);
+                // 提交
+                Db::commit();
+                $result = true;
+            } catch (\Exception $exception) {
+                // 回滚
+                Db::rollback();
+                $result = false;
+            }
             if ($result !== false) {
-                Db::table('dw_users')->where(['user_id'=> $this->request->post('user_id')])->setInc('complete_rate',10);
                 $this->success('审核成功', 'member/index');
             } else {
                 $this->error('数据保存失败, 请稍候再试!');
             }
-        } else {
-            $sql->order('b.examine_id desc');
         }
         return $this->_form($sql, '', '审核成功','member/index','a.user_id', ['a.user_id'=> $this->request->get('user_id')]);
     }
