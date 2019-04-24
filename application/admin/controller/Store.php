@@ -46,8 +46,12 @@ class Store extends BasicAdmin
     protected function _data_filter(&$data) {
         if($this->request->action() == "index"){
             foreach($data as $k=>&$v){
+                $images = Db::table('dw_user_examine')->where(['user_id'=>$v['user_id']])->order('examine_id desc')->find();
                 $data[$k]['add_time'] = date('Y-m-d H:m:s',$v['add_time']);
                 $v['user_avatar'] = $v['user_avatar'] ? '/'.$v['user_avatar'] : '';
+                $v['img1'] = $images['img1'] ? '/'.$images['img1'] : '';
+                $v['img2'] = $images['img2'] ? '/'.$images['img2'] : '';
+                $v['img3'] = $images['img3'] ? '/'.$images['img3'] : '';
                 $v['invite_name'] = $v['invite_name'] ?: '';
             }
         }
@@ -65,7 +69,8 @@ class Store extends BasicAdmin
                 $result = Db::table('dw_users')->where(['user_id'=>$user_id])->update(['is_business'=>1,'is_examine'=>1]);
             }else{
                 $result1 = Db::table('dw_users')->where(['user_id'=>$user_id])->find();
-                $result = Db::table('dw_users')->where(['user_id'=>$user_id])->update(['is_business'=>3,'is_examine'=>3,'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4)]);
+                Db::table('dw_user_examine')->where(['user_id'=>$user_id])->update(['status'=>2]);
+                $result = Db::table('dw_users')->where(['user_id'=>$user_id])->update(['is_business'=>3,'business_usdt'=>0,'is_examine'=>3,'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4)]);
             }
 //            $time = $request->post('time',1);
             if($result){

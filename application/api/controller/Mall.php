@@ -54,7 +54,7 @@ class Mall extends BasicApi
             $v['user_avatar'] = Config::get('image_url').$v['user_avatar'];
             $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],4);
         }
-        $list['mall_count'] =  UsdtMall::where("status IN (0,1)")->count();
+        $list['mall_count'] =  UsdtMall::where("status IN (0,1)")->where("type = 1")->count();
         return $this->response($list);
     }
 
@@ -163,12 +163,15 @@ class Mall extends BasicApi
         if (!$mallValidate->scene('confirm_pay')->check($request->post())) {
             return  $this->response( $mallValidate->getError() ,304);
         }
+        $usdtOrder = UsdtOrder::get($request->post('order_id'));
+        if ($usdtOrder['status'] >= 1) {
+            return $this->response('已确定付款');
+        }
         Db::startTrans();
         try {
             // 订单确定付款
             UsdtOrder::where(['order_id' => $request->post('order_id')])
                 ->update(['status' => 1]);
-            $usdtOrder = UsdtOrder::get($request->post('order_id'));
             $usdtMall = $usdtOrder->usdtMall;
             // 确定付款的两个类型
             if ($usdtMall['type'] == 1) {
@@ -222,6 +225,9 @@ class Mall extends BasicApi
         }
         // 订单信息
         $order = UsdtOrder::get($request->post('order_id'));
+        if ($order['status'] >= 2) {
+            return $this->response('已拨币');
+        }
         Db::startTrans();
         try {
             // 挂单
@@ -332,12 +338,16 @@ class Mall extends BasicApi
         if (!$mallValidate->scene('appeal')->check($request->post())) {
             return  $this->response( $mallValidate->getError() ,304);
         }
+        $status_msg = $request->post('status_msg');
+        if(!$status_msg){
+            return $this->response('申述理由必填',304);
+        }
         Db::startTrans();
         try {
             $userInfo = $request->userInfo;
             // 将订单改成申诉
             UsdtOrder::where(['order_id'=> $request->post('order_id')])
-                ->update(['status'=> 3]);
+                ->update(['status'=> 3,'status_msg'=>$status_msg,'state_time'=>time()]);
             $order = UsdtOrder::get($request->post('order_id'));
             $msg_user = $userInfo['user_id'] == $order['user_id'] ? $order['mall_user_id'] : $order['user_id'];
             // 消息通知通知对方
@@ -422,7 +432,7 @@ class Mall extends BasicApi
                 'wx_gathering' => $wx_gathering,
                 'bank_gathering' => $bank_gathering,
                 'zfb_gathering' => $zfb_gathering,
-
+                'add_time'=>time(),
             ]);
             // 扣除usdt
             $userInfo->save([
@@ -519,11 +529,11 @@ class Mall extends BasicApi
             $v['mall_user_avatar'] = Config::get('image_url').$v['mall_user_avatar'];
             $user_mall = UsdtMall::where(['mall_id'=>$v['mall_id']])->find();
             $v['usdt_price'] = $user_mall['usdt_price'];
-            $v['type'] = $user_mall['type']; // 发布的是出售还是收购
+            $v['mall_type'] = $user_mall['type']; // 发布的是出售还是收购
             if($userInfo['user_id'] == $user_mall['user_id']){
-                $v['mall_type'] = 1;
+                $v['is_mall_user'] = 1;
             }else{
-                $v['mall_type'] = 2;
+                $v['is_mall_user'] = 0;
             }
         }
         return $this->response($order_list);
@@ -875,6 +885,9 @@ class Mall extends BasicApi
         $list['detail_order'] = UsdtOrder::where(['order_id'=>$order_id])->find();
         $list['detail_order']['cancel_time'] = ($list['detail_order']['add_time'] +900)-time();
         $list['detail_order'] ['add_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['add_time']);
+        if($list['detail_order']['state_time']){
+            $list['detail_order'] ['state_time'] = date('Y-m-d H:i:s',$list['detail_order'] ['state_time']);
+        }
         $list['mall_info'] = UsdtMall::where(['mall_id'=>$list['detail_order']['mall_id']])->find();
         if($list['detail_order']['pay_type'] ==1){
 
@@ -895,9 +908,9 @@ class Mall extends BasicApi
             $list['user_info']['user_avatar'] = $list['user_info']['user_avatar']  ?Config::get('image_url').$list['user_info']['user_avatar'] :'';
         }
         if($userInfo['user_id'] ==$list['mall_info']['user_id']){
-            $list['user_info']['type'] = 1;
+            $list['user_info']['is_mall_user'] = 1;
         }else{
-            $list['user_info']['type'] = 2;
+            $list['user_info']['is_mall_user'] = 1;
         }
         return $this->response($list);
 

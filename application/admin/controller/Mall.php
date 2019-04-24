@@ -38,4 +38,11 @@ class Mall extends BasicAdmin
         // 实例化并显示
         return parent::_list($db);
     }
+    public function _data_filter(&$data) {
+        if ($this->request->action() == 'index') {
+            foreach ($data as $val) {
+                $val['add_time'] = date("Y-m-d H:i:s",$val['add_time']);
+            }
+        }
+    }
 }

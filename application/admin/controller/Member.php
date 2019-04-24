@@ -37,7 +37,7 @@ class Member extends BasicAdmin
         $db = User::alias('a')
             ->join('dw_users b', 'b.user_id = a.invite_user', 'left')
             ->field('a.*, b.true_name as invite_name')
-            ->order('a.add_time', 'desc');
+            ->order("a.is_examine % 3 desc,a.user_id desc");
         // 应用搜索条件
         foreach (['true_name', 'user_phone', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
@@ -76,7 +76,7 @@ class Member extends BasicAdmin
             try {
                 Db::table('dw_user_examine')->where(['examine_id'=> $userExamine['examine_id']])
                     ->update([
-                        'b.status'=> $this->request->post('status'),
+                        'status'=> $this->request->post('status'),
                     ]);
                 Db::table('dw_users')
                     ->where(['user_id'=> $this->request->post('user_id')])

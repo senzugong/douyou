@@ -54,7 +54,7 @@ class Worker
                 }, [$worker, $this]);
             } elseif ($worker->id == 1) {
                 // 只在id编号为0的进程上设置定时器，其它1、2、3号进程不设置定时器
-                Timer::add(2, function ($worker, $sup) {
+                Timer::add(1, function ($worker, $sup) {
                     try {
                         // 定时产生RMZ
                         $sup->getresult();
@@ -138,7 +138,14 @@ class Worker
         $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
         // 获取数据
         $data = Curl::get($url);
-        $btc_price = $data['ticker']['sell'];//当前btc价格
+        if(!is_array($data['ticker'])){
+            $url1 = 'http://api.bitkk.com/data/v1/ticker?market=btc_usdt';
+            // 获取数据
+            $data1 = Curl::get($url1);
+            $btc_price = $data1['ticker']['sell'];//当前btc价格
+        }else{
+            $btc_price = $data['ticker']['sell'];//当前btc价格
+        }
 //        if(!$btc_price){
 //                $btc_now = Db::table('dw_btc_now')->value('btc_now');
 //                $data = json_decode($btc_now,true);
@@ -444,6 +451,12 @@ class Worker
      * @throws \think\exception\DbException
      */
     public function is_controller($btc_price){
+        //滑点控制
+        $point = Db::table('dw_slip_point')->find();
+        if($point['point'] != 0){
+            $point_price = bcadd($btc_price,$point['point'],4);
+            return $point_price;
+        }
         //开启了滑点风控
         $result = Db::table('dw_btc_config')->where("status = 1")->find();
         if($result){

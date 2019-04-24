@@ -41,6 +41,7 @@ class WaveValidate extends Validate
     protected $scene = [
         'buy'=> ['pay_password', 'money', 'type_id'],
         'new'=> ['btc_id'],
+        'buy_point'=> ['style'=>'require', 'buy_price'=>'require', 'usdt_fee'=>'require','buy_quiz'=>'require','btc_point'=>'require'],
     ];
 
     /**

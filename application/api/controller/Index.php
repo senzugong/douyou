@@ -52,9 +52,22 @@ class Index extends BasicApi
         } elseif ($signYesterday) {
             $dayNum = $signYesterday->reward_num;
         }
+        $ids = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->group('user_id')->field('GROUP_CONCAT(user_id) as ids')->find();
+        if($ids) {
+            $reward = 0.0000;
+            $list = Db::table('dw_btc_order')->where("user_id IN ({$ids['ids']})")->select();
+            foreach($list as &$v){
+                $reward = bcadd($reward,bcdiv($v['sx_fee'],2,4),4);
+            }
+        }else{
+            $reward = 0.0000;
+        }
+        $invite_count = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->count();
         $data = [
             'today_sign'=> $today_sign,
-            'day_num'=> $dayNum
+            'day_num'=> $dayNum,
+            'invite_count'=>$invite_count,
+            'reward'=>$reward
         ];
         return $this->response($data);
     }

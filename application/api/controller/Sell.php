@@ -51,7 +51,7 @@ class Sell extends BasicApi
             $v['surplus_usdt'] = bcsub($v['usdt_num'],$v['over_usdt'],4);
         }
         // 总条数
-        $total = UsdtMall::where(['type'=> 2])->count();
+        $total = UsdtMall::where(['type'=> 2])->where("status IN (0,1)")->count();
         // 整合数据
         $data = [
             'total'=> $total,
@@ -201,7 +201,7 @@ class Sell extends BasicApi
                 'add_time'=> time(),
             ]);
             // 推送消息
-            JgPush::send($usdtMall['user_id'], '您发布出售USDT已被下单');
+            JgPush::send($usdtMall['user_id'], '您发布收购USDT已被下单');
             // 提交
             Db::commit();
             return $this->response();

@@ -48,7 +48,7 @@ class User extends BasicApi
             $userInfo['is_wallet'] = 0;
         }
         if($userInfo['is_examine'] == 1 || $userInfo['is_examine']==2){
-            $examine_list =  Db::table('dw_user_examine')->where(['user_id'=>$userInfo['user_id']])->find();
+            $examine_list =  Db::table('dw_user_examine')->where(['user_id'=>$userInfo['user_id']])->order('examine_id desc')->find();
             $userInfo['img1'] = $examine_list['img1'] ? Config::get('image_url') . $examine_list['img1'] : '';
             $userInfo['img2'] = $examine_list['img2'] ? Config::get('image_url') . $examine_list['img2'] : '';
             $userInfo['img3'] = $examine_list['img3'] ? Config::get('image_url') . $examine_list['img3'] : '';
@@ -363,7 +363,26 @@ class User extends BasicApi
         }
         $change_dw = bcsub($userInfo['dw_usdt'],$usdt_num,4);
         $userInfo->save(['dw_usdt'=>$change_dw,'is_business'=>2,'business_usdt'=>$usdt_num]);
+        // 添加日志
+        UsdtLog::create([
+            'user_id'=> $userInfo->user_id,
+            'log_content'=> '商家认证扣除usdt',
+            'type'=> 1,
+            'log_status'=>10,
+            'chance_usdt'=>$usdt_num,
+            'dw_usdt'=> $userInfo->dw_usdt,
+            'add_time'=> time(),
+        ]);
         return $this->response();
+    }
+
+    /**
+     * @param Request $request
+     * @return \think\Response
+     */
+    public function business_usdt(Request $request){
+        $business_usdt = Db::table('dw_business_usdt')->where(['id'=>1])->value('business_usdt');
+        return $this->response($business_usdt);
     }
     /**商家认证取消
      * @param Request $request
@@ -375,7 +394,18 @@ class User extends BasicApi
            return $this->response('你还不是认证商家！',304);
        }
             $change_dw = bcadd($userInfo['dw_usdt'],$userInfo['business_usdt'],4);
+            $business_usdt = $userInfo['business_usdt'];
             $userInfo->save(['dw_usdt'=>$change_dw,'is_business'=>0,'business_usdt'=>0]);
+        // 添加日志
+        UsdtLog::create([
+            'user_id'=> $userInfo->user_id,
+            'log_content'=> '商家取消返回usdt',
+            'type'=> 2,
+            'log_status'=>10,
+            'chance_usdt'=>$business_usdt,
+            'dw_usdt'=> $userInfo->dw_usdt,
+            'add_time'=> time(),
+        ]);
         return $this->response();
     }
     /**
@@ -392,9 +422,9 @@ class User extends BasicApi
         if($ids){
             $result = Db::table('dw_invite_reward')->where(['user_id'=>$userInfo['user_id']])->order('id desc')->find();
             if($result){
-                $list = Db::table('dw_btc_order')->where(" order_id > {$result['order_id']} and user_id IN ($ids)")->select();
+                $list = Db::table('dw_btc_order')->where(" order_id > {$result['order_id']} and user_id IN ({$ids['ids']})")->select();
             }else{
-                $list = Db::table('dw_btc_order')->where("user_id IN ($ids)")->select();
+                $list = Db::table('dw_btc_order')->where("user_id IN ({$ids['ids']})")->select();
             }
             $reward = 0.0000;
             foreach($list as &$v){
@@ -407,6 +437,35 @@ class User extends BasicApi
         $list['invite_count'] = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->count();
         return $this->response($list);
     }
+
+    /**
+     * @param Request $request邀请好友列表
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function invite_list(Request $request){
+        $userInfo = $request->userInfo;
+        $list = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->field('user_phone,user_name,user_avatar,add_time')->select();
+        foreach ($list as &$v){
+            $v['user_avatar'] =  $v['user_avatar'] ? Config::get('image_url') .  $v['user_avatar'] : '';
+            if(!$v['user_name']){
+                $v['user_name'] = substr_replace($v['user_phone'] , '****', 3, 4);
+            }
+            $v['add_time'] =  $this->getTime($v['add_time']) ;
+        }
+        return $this->response($list);
+
+
+    }
+    /**
+     * @param Request $request领取
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function invite_reward(Request $request){
         $userInfo = $request->userInfo;
         $reward = $request->post('reward');

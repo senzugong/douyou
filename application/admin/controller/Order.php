@@ -56,6 +56,7 @@ class Order extends BasicAdmin
             foreach ($data as $val) {
                 $val['gathering_img'] = $val['gathering_img'] ? Config::get('image_url') . $val['gathering_img'] : '';
                 $val['invite_name'] = $val['invite_name'] ?: '';
+                $val['add_time'] = date("Y-m-d H:i:s",$val['add_time']);
             }
         }
     }

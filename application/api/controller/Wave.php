@@ -7,6 +7,7 @@
  */
 
 namespace app\api\controller;
+use app\api\validate\WaveValidate;
 use app\common\library\Curl;
 use app\common\model\UsdtLog;
 use controller\BasicApi;
@@ -100,7 +101,11 @@ class Wave extends BasicApi
     /**点位购买
      * @param Request $request
      */
-    public  function buy_point(Request $request){
+    public  function buy_point(Request $request,WaveValidate $waveValidate){
+        // 验证数据
+        if (!$waveValidate->scene('buy_point')->check($request->post())) {
+            return  $this->response( '参数错误！',304);
+        }
         $result = $this->get_open();
         if(!$result){
             return $this->response('已休市!',304);
@@ -129,15 +134,23 @@ class Wave extends BasicApi
             return $this->response('usdt余额不足',304);
         }
         $data['user_id'] = $userInfo['user_id'];
-        $data['btc_point'] = $request->post('btc_point','3/3');
-        $rise_point = explode('/',$data['btc_point']);
-        if($data['style'] == 1){
-            $data['rise_price'] =  bcadd($data['buy_price'],$rise_point[0],4);
-            $data['fill_price'] =  bcsub($data['buy_price'],$rise_point[1],4);
+        $data['btc_point'] = $request->post('btc_point',"3/3");
+        $rise_point = explode('/',trim($data['btc_point']));
+//        if (!isset($rise_point[1])) {
+//            file_put_contents(ROOT_PATH.'runtime/log/aaaa.txt', var_export($data['btc_point'], true), FILE_APPEND);
+//        }
+        if(is_array($rise_point) && isset($rise_point[0]) && isset($rise_point[1])){
+            if($data['style'] == 1){
+                $data['rise_price'] =  bcadd($data['buy_price'],$rise_point[0],4);
+                $data['fill_price'] =  bcsub($data['buy_price'],$rise_point[1],4);
+            }else{
+                $data['rise_price'] =  bcsub($data['buy_price'],$rise_point[0],4);
+                $data['fill_price'] =  bcadd($data['buy_price'],$rise_point[1],4);
+            }
         }else{
-            $data['rise_price'] =  bcsub($data['buy_price'],$rise_point[0],4);
-            $data['fill_price'] =  bcadd($data['buy_price'],$rise_point[1],4);
+            return $this->response('服务器内部出错',304);
         }
+
         Db::startTrans();
         try {
             Db::table('dw_btc_order')->insert($data);

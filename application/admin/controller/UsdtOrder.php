@@ -35,9 +35,9 @@ class UsdtOrder extends BasicAdmin
         $db = Db::name($this->table)->alias('a')
             ->join('dw_users b','b.user_id=a.user_id')
             ->order('a.add_time', 'desc')
-            ->field('a.*,b.user_name,b.user_phone');
+            ->field('a.*,b.user_name,b.user_phone,b.true_name');
         // 应用搜索条件
-        foreach (['user_name', 'user_phone'] as $key) {
+        foreach (['true_name', 'user_phone'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
                 $get[$key]=trim($get[$key]);
                     $db->where("b." . $key, 'like', "%{$get[$key]}%");

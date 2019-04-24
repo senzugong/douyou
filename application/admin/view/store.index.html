@@ -45,11 +45,13 @@
                             <th>用户昵称</th>
                             <th>真实名字</th>
                             <th>手机号</th>
-                            <th>邀请码</th>
+                            <th>身份证号码</th>
                             <th>邀请人</th>
                             <th>USDT余额</th>
                             <th>商家保证金</th>
-                            <th>注册时间</th>
+                            <th>身份证图片1</th>
+                            <th>身份证图片2</th>
+                            <th>身份证图片3</th>
                             <th>认证状态</th>
                             <th>高级认证状态</th>
                             <th>是否是业务员</th>
@@ -74,11 +76,14 @@
         <td>{{ item.user_name}}</td>
         <td>{{ item.true_name}}</td>
         <td>{{ item.user_phone }}</td>
-        <td>{{ item.invite_code}}</td>
+        <td>{{ item.card_num}}</td>
         <td>{{ item.invite_name}}</td>
         <td>{{ item.dw_usdt }}</td>
         <td>{{ item.business_usdt }}</td>
-        <td>{{ item.add_time }}</td>
+
+        <td> <img src="{{ item.img1 }}" style="width:40px;height:40px;" onclick="openImage('{{ item.img1 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
+        <td> <img src="{{ item.img2 }}" style="width:40px;height:40px;"onclick="openImage('{{ item.img2 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
+        <td> <img src="{{ item.img3 }}" style="width:40px;height:40px;"onclick="openImage('{{ item.img3 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
         <td>
             {{#if (item.is_attestation == 0){ }}
             未上传认证
@@ -116,10 +121,10 @@
         <td>
             <div class="layui-btn-group">
                 {{#if (item.is_business == 2){ }}
-                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1&field=is_business","method":"post","confirm":"true"}'>
+                <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1","method":"post","confirm":"true"}'>
                     <i class="layui-icon">&#x1005;</i>通过
                 </button>
-                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=3&field=is_business","method":"post","confirm":"true"}'>
+                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=3","method":"post","confirm":"true"}'>
                     <i class="iconfont">&#xe626;</i>不通过
                 </button>
                 {{# } }}
@@ -131,4 +136,50 @@
 {include file="public/bottom"}
 <script>
     layui.use('list');
+</script>
+<style>
+    .custom-pop-shade{
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 5000;
+        background-color: #000;
+        opacity: 0.3;
+    }
+    .custom-pop-master{
+        z-index: 6000;
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);;
+        max-width: 100%;
+        background: #fff;
+        max-height: calc(100% - 90px);
+        display: flex;
+        flex-direction:column;
+    }
+    .custom-pop-content{
+        padding: 20px;
+        max-height: calc(100% - 90px);
+        overflow: auto;
+    }
+</style>
+<script src="/static/js/jquery-1.9.0.js"></script>
+<script>
+    // 放大显示图片
+    function openImage(url) {
+        var shade = $('<div class="custom-pop-shade"></div>');
+        var pop = $('<div class="custom-pop-master">' +
+            '<div class="layui-layer-title" style="flex-shrink: 0">身份认证' +
+            '<span class="layui-layer-setwin"><a class="layui-layer-ico layui-layer-close layui-layer-close1" href="javascript:;"></a></span></div>' +
+            '<div class="custom-pop-content"><img src='+url+'></div>' +
+            '</div>');
+        $(document.body).append(shade).append(pop);
+        $(pop.find('.layui-layer-close')[0]).on('click',function () {
+            shade.remove()
+            pop.remove()
+        })
+    }
 </script>
