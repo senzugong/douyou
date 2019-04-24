@@ -187,7 +187,7 @@ class Mall extends BasicApi
                 ]);
                 // 推送消息
                 JgPush::send($usdtOrder['mall_user_id'], '您发布出售USDT订单已付款');
-            } elseif ($usdtMall['type'] == 1) {
+            } elseif ($usdtMall['type'] == 2) {
                 // 发布是收购的，由发布人确认付款，通知下单人
                 // 消息通知
                 Message::create([
