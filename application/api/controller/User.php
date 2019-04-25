@@ -72,12 +72,23 @@ class User extends BasicApi
         // 冻结资金
         $sell_freeze = '0.00';
         $usdtMall = $userInfo->usdtMall()
-            ->whereIn('status', [0, 1])
+            ->whereIn('status', [0,1,2])
+            ->where("type = 1")
             ->select();
-        foreach ($usdtMall as $val) {
-            $sell_freeze = bcadd($sell_freeze, bcsub($val['usdt_num'], $val['over_usdt'], 2), 2);
+        foreach ($usdtMall as &$val){
+            $sell_freeze = bcadd($sell_freeze, $val['usdt_num'],2);
+//            $sell_freeze = bcadd($sell_freeze, bcsub($val['usdt_num'], $val['over_usdt'], 2), 2);
         }
-        $userInfo['sell_freeze'] = $sell_freeze;
+        $ids = Db::table('dw_usdt_mall')->where("status IN (1,2) and user_id ={$userInfo['user_id']}  and type = 1")->field('GROUP_CONCAT(mall_id) as ids')->find();
+//        var_dump($ids);die;
+        $success_usdt = '0.00';
+        if($ids['ids']){
+           $list = Db::table('dw_usdt_order')->where("mall_id IN ({$ids['ids']}) and status = 2")->select();
+           foreach($list as &$v){
+               $success_usdt = bcadd($success_usdt, $v['order_usdt_num'], 2);
+           }
+        }
+        $userInfo['sell_freeze'] = bcsub($sell_freeze,$success_usdt,2);
         $fetch_freeze = '0.00';
         $usdtChange = UsdtChangelog::where(['user_id'=> $userInfo['user_id'], 'type'=> 2, 'status'=> 0])
             ->select();
@@ -366,7 +377,7 @@ class User extends BasicApi
         // 添加日志
         UsdtLog::create([
             'user_id'=> $userInfo->user_id,
-            'log_content'=> '商家认证扣除usdt',
+            'log_content'=> '商家认证扣除USDT',
             'type'=> 1,
             'log_status'=>10,
             'chance_usdt'=>$usdt_num,
@@ -399,7 +410,7 @@ class User extends BasicApi
         // 添加日志
         UsdtLog::create([
             'user_id'=> $userInfo->user_id,
-            'log_content'=> '商家取消返回usdt',
+            'log_content'=> '商家取消返回USDT',
             'type'=> 2,
             'log_status'=>10,
             'chance_usdt'=>$business_usdt,
@@ -418,16 +429,17 @@ class User extends BasicApi
     public function invite(Request $request){
         $userInfo = $request->userInfo;
         //邀请的好友集合
-        $ids = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->group('user_id')->field('GROUP_CONCAT(user_id) as ids')->find();
-        if($ids){
+        $ids = Db::table('dw_users')->where(['invite_user'=>$userInfo['user_id']])->field('GROUP_CONCAT(user_id) as ids')->find();
+//        var_dump($ids['ids']);die;
+        if($ids['ids']){
             $result = Db::table('dw_invite_reward')->where(['user_id'=>$userInfo['user_id']])->order('id desc')->find();
             if($result){
-                $list = Db::table('dw_btc_order')->where(" order_id > {$result['order_id']} and user_id IN ({$ids['ids']})")->select();
+                $list1 = Db::table('dw_btc_order')->where(" order_id > {$result['order_id']} and user_id IN ({$ids['ids']})")->select();
             }else{
-                $list = Db::table('dw_btc_order')->where("user_id IN ({$ids['ids']})")->select();
+                $list1 = Db::table('dw_btc_order')->where("user_id IN ({$ids['ids']})")->select();
             }
             $reward = 0.0000;
-            foreach($list as &$v){
+            foreach($list1 as &$v){
                 $reward = bcadd($reward,bcdiv($v['sx_fee'],2,4),4);
             }
         $list['invite_usdt']  =  $reward;

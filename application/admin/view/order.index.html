@@ -43,7 +43,6 @@
                         <thead>
                         <tr>
                             <th width="70" class="txt-center"><span class="order" data-params='{"field":"id","sort":"asc"}'> 序号</span></th>
-                            <th>订单号</th>
                             <th>发布单ID</th>
                             <th>用户昵称</th>
                             <th>用户真实名字</th>
@@ -54,6 +53,7 @@
                             <th>订单USDT数量</th>
                             <th>收款账户</th>
                             <th>收款二维码</th>
+                            <th>申述理由</th>
                             <th>添加时间</th>
                             <th>状态</th>
                             <th width="200">操作</th>
@@ -72,7 +72,6 @@
     {{# layui.each(d.list, function(index, item){ }}
     <tr>
         <td class="txt-center">{{ item.order_id}}</td>
-        <td><div style="max-width:160px;word-wrap:break-word">{{ item.order_sn}}</div></td>
         <td>{{ item.mall_id}}</td>
         <td>{{ item.user_name}}</td>
         <td>{{ item.true_name}}</td>
@@ -87,6 +86,7 @@
             <div style="display: inline-block;"><img src="{{ item.gathering_img}}" onclick="openImage('{{ item.gathering_img}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
             {{# } }}
         </td>
+        <td><div style="max-width:160px;word-wrap:break-word">{{ item.status_msg}}</div></td>
         <td>{{ item.add_time }}<td>
             {{# if (item.status == 0) { }}
             代付款

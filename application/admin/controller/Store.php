@@ -3,6 +3,7 @@
 
 namespace app\admin\controller;
 
+use app\common\model\UsdtLog;
 use app\common\model\User;
 use controller\BasicAdmin;
 use service\DataService;
@@ -33,7 +34,7 @@ class Store extends BasicAdmin
             ->join('dw_users b', 'b.user_id = a.invite_user', 'left')
             ->field('a.*, b.true_name as invite_name')
             ->where('a.is_business != 0')
-            ->order('a.add_time', 'desc');
+            ->order("a.is_business % 3 desc,a.add_time desc");
         // 应用搜索条件
         foreach (['true_name', 'user_phone', 'role_id'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
@@ -71,6 +72,16 @@ class Store extends BasicAdmin
                 $result1 = Db::table('dw_users')->where(['user_id'=>$user_id])->find();
                 Db::table('dw_user_examine')->where(['user_id'=>$user_id])->update(['status'=>2]);
                 $result = Db::table('dw_users')->where(['user_id'=>$user_id])->update(['is_business'=>3,'business_usdt'=>0,'is_examine'=>3,'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4)]);
+                // 添加日志
+                UsdtLog::create([
+                    'user_id'=>$user_id,
+                    'log_content'=> '商家认证失败返回USDT',
+                    'type'=> 2,
+                    'log_status'=>10,
+                    'chance_usdt'=>$result1['business_usdt'],
+                    'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4),
+                    'add_time'=> time(),
+                ]);
             }
 //            $time = $request->post('time',1);
             if($result){

@@ -39,7 +39,9 @@ class Order extends BasicAdmin
             ->join('dw_users b', 'b.user_id=a.user_id', 'left')
             ->join('dw_users d', 'd.user_id=a.mall_user_id', 'left')
             ->join('dw_users f', 'f.user_id=b.invite_user', 'left')
+            ->join('dw_usdt_mall e','e.mall_id = a.mall_id')
             ->join('dw_user_gathering c', 'c.gathering_id=a.gathering_id', 'left')
+            ->where('e.type = 1')
             ->field('a.*,b.user_name,b.true_name,d.user_name as mall_user,d.true_name as mall_true_user,c.gathering_name,c.gathering_img, f.true_name as invite_name')
             ->order('order_id desc');
         // 应用搜索条件
@@ -78,7 +80,19 @@ class Order extends BasicAdmin
             try {
                 // 出售的挂单，将币拨到下单人
                 $orderUser = $order->orderUser;
-                $orderUser->save(['dw_usdt'=> bcadd($orderUser->dw_usdt, $order->order_usdt_num, 4)]);
+                // 挂单用户
+                $mallUser = $order->mallUser;
+                $order->save(['status'=> 2]); // 完成订单
+                $usdtMall = $order->usdtMall; // 发布单
+                if ($usdtMall['type'] == 1) {
+                    // 发布出售，币发给下单人
+                    $orderUser->save(['dw_usdt' => bcadd($orderUser->dw_usdt, $order->order_usdt_num, 4)]);
+                    // 确定充值订单
+                    UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 1]);
+                } else {
+                    // 发布收购的单
+                    $mallUser->save(['dw_usdt' => bcadd($mallUser->dw_usdt, $order->order_usdt_num, 4)]);
+                }
                 // USDT日志
                 UsdtLog::create([
                     'user_id'=> $orderUser->user_id,
@@ -91,10 +105,6 @@ class Order extends BasicAdmin
                     'dw_usdt'=> $orderUser->dw_usdt,
                     'add_time'=> time(),
                 ]);
-                // 确定充值订单
-                UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 1]);
-                // 挂单用户
-                $mallUser = $order->mallUser;
                 UsdtLog::create([
                     'user_id'=> $mallUser->user_id,
                     'log_content'=> '场外交易出售USDT',
@@ -106,7 +116,6 @@ class Order extends BasicAdmin
                     'add_time'=> time(),
                 ]);
 
-                $order->save(['status'=> 2]);
                 // 消息通知
                 Message::create([
                     'user_id'=> $order['user_id'],
@@ -116,8 +125,17 @@ class Order extends BasicAdmin
                     'msg_type'=> 4, // 类型 1幸运转盘 2号码竞猜 3猜涨跌 4场外交易 5活动的消息 6提币的消息
                     'add_time'=> time(),
                 ]);
+                Message::create([
+                    'user_id'=> $order['mall_user_id'],
+                    'trigger_id'=> $order['order_id'],
+                    'title'=> "您的购买USDT订单已完成",
+                    'content'=> "您的购买USDT订单（{$order['order_sn']}）已完成，赶紧去看看吧！",
+                    'msg_type'=> 4, // 类型 1幸运转盘 2号码竞猜 3猜涨跌 4场外交易 5活动的消息 6提币的消息
+                    'add_time'=> time(),
+                ]);
                 // 推送消息
-                JgPush::send($order['user_id'], '您的购买USDT订单已完成');
+                JgPush::send($order['user_id'], '您的USDT订单已完成');
+                JgPush::send($mallUser['user_id'], '您的USDT订单已完成');
                 // 提交
                 Db::commit();
                 $result = true;
@@ -137,19 +155,23 @@ class Order extends BasicAdmin
                 // 取消订单
                 $order->save(['status'=>4]);
                 // 返还usdt到挂单
-//                $mall->save(['over_usdt' => $usdt]);
-                if($mall['status'] == 2 ){
-                    $mall->save(['over_usdt' => $usdt]);
-                    if($mall['over_usdt'] > 0){
+                $mall->save(['over_usdt' => $usdt]);
+                if ($mall['status'] == 2 ){
+                    if ($mall['over_usdt'] > 0){
                         $mall->save(['status' => 1]);
-                    }else{
+                    } else {
                         $mall->save(['status' =>0]);
                     }
-                }else{
-                    $mall->save(['over_usdt' => $usdt]);
                 }
-                // 取消充值订单
-                UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 2]);
+                // 出售的挂单，将币拨到下单人
+                $orderUser = $order->orderUser;
+                if ($mall['type'] == 1) {
+                    // 取消充值订单
+                    UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 2]);
+                } else {
+                    // 发布收购
+                    $orderUser->save(['dw_usdt' => bcadd($orderUser->dw_usdt, $order->order_usdt_num, 4)]);
+                }
                 // 消息通知（发布用户）
                 Message::create([
                     'user_id'=> $order['mall_user_id'],

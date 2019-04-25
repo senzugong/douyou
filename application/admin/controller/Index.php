@@ -87,6 +87,17 @@ class Index extends BasicAdmin
         foreach ($usdt_count as &$v){
             $usdt = bcadd($v['dw_usdt'],$usdt,4);
         }
+        //会员总的usdt支出  收入统计比例开始
+        $sex_list1=Db::table('dw_usdt_log')->select(); //1是男2是女
+        $out_count = '0.0000';
+        $on_count = '0.0000';
+        foreach($sex_list1 as &$v){
+            if($v['type'] ==1){
+                $out_count = bcadd($v['chance_usdt'],$out_count,4);
+            }else{
+                $on_count = bcadd($v['chance_usdt'],$on_count,4);
+            }
+        }
         $article_count=User::where(['is_examine'=> 1])->count();// 已高级认证
         $now_article_count=User::where(['is_examine'=> 2])->count();//待审核高级认证
         //
@@ -121,7 +132,9 @@ class Index extends BasicAdmin
             'comment_count'=>$comment_count,
             'now_comment_count'=>$now_comment_count,
             'btc_result'=>$btc_result,
-             'usdt'=>$usdt
+             'usdt'=>$usdt,
+            'out_count'=>$out_count,
+            'on_count'=>$on_count,
         ]);
         return view();
     }

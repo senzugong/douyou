@@ -86,6 +86,14 @@ class Mall extends BasicApi
         }
         // 发布单
         $usdtMall = UsdtMall::get($mall_id);
+        $success_usdt = '0.0000';
+        $list = Db::table('dw_usdt_order')->where("mall_id = $mall_id and status IN (0,1,2,3)")->select();
+        foreach($list as &$v){
+            $success_usdt = bcadd($success_usdt, $v['order_usdt_num'], 2);
+        }
+        if($success_usdt >= $usdtMall['usdt_num']){
+            return $this->response('数量不足，请勿操作该单!', 304);
+        }
         if($money > bcsub($usdtMall['usdt_num'],$usdtMall['over_usdt'],4))
         {
             return $this->response('剩余usdt库存不足!', 304);
@@ -241,14 +249,16 @@ class Mall extends BasicApi
                     $usdtMall->save(['status'=> 3]);
                 }
             }
+            // 下单人
+            $orderUser = $order->orderUser;
+            // 发布人
+            $mallUser = $order->mallUser;
             if ($usdtMall['type'] == 1) {
                 // 发布是出售的，由发布人确认收款，通知下单人
-                // 出售的挂单，将币拨到下单人
-                $orderUser = $order->orderUser;
                 $orderUser->save([
                     'dw_usdt'=> bcadd($orderUser['dw_usdt'], $order['order_usdt_num'], 4)
                 ]);
-                // USDT日志
+                // 下单用户USDT日志
                 UsdtLog::create([
                     'user_id'=> $orderUser->user_id,
                     'log_content'=> '场外交易购买USDT',
@@ -262,8 +272,7 @@ class Mall extends BasicApi
                 ]);
                 // 确定充值订单
                 UsdtChangelog::where(['changelog_id'=> $order['changelog_id']])->update(['status'=> 1]);
-                // 挂单用户，写入交易日志
-                $mallUser = $order->mallUser;
+                // 发布用户，写入交易日志
                 UsdtLog::create([
                     'user_id'=> $mallUser['user_id'],
                     'log_content'=> '场外交易出售USDT',
@@ -288,11 +297,10 @@ class Mall extends BasicApi
                 JgPush::send($order['user_id'], '您的购买USDT订单已完成');
             } elseif ($usdtMall['type'] == 2) {
                 // 发布是收购的，由下单人确认收款，通知发布人
-                // 挂单用户，下单用户在下单时已经有交易日志
-                $mallUser = $order->mallUser;
                 $mallUser->save([
                     'dw_usdt'=> bcadd($mallUser['dw_usdt'], $order['order_usdt_num'], 4)
                 ]);
+                // 发布用户日志
                 UsdtLog::create([
                     'user_id'=> $mallUser['user_id'],
                     'log_content'=> '场外交易收购USDT',
@@ -301,6 +309,17 @@ class Mall extends BasicApi
                     'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到
                     'chance_usdt'=> $order['order_usdt_num'],
                     'dw_usdt'=> $mallUser['dw_usdt'],
+                    'add_time'=> time(),
+                ]);
+                // 下单用户USDT日志
+                UsdtLog::create([
+                    'user_id'=> $orderUser['user_id'],
+                    'log_content'=> '场外交易出售USDT',
+                    'usdt_charge_type'=> 2,
+                    'type'=> 1, // 1 支出 2转入
+                    'log_status'=> 1, // 1USDT购买  2USDT提币 3转盘 4号码竞猜 5实时猜涨跌 6点位猜涨跌 7签到 8USDT充值
+                    'chance_usdt'=> $order['order_usdt_num'],
+                    'dw_usdt'=> $orderUser['dw_usdt'],
                     'add_time'=> time(),
                 ]);
                 // 消息通知
@@ -927,7 +946,7 @@ class Mall extends BasicApi
         $list['bank'] = UserBank::where(['user_id'=>$userInfo['user_id'],'status'=>1])->find();
         $list['wx_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>2,'status'=>1])->find();
         $list['zfb_pay'] = UserGathering::where(['user_id'=>$userInfo['user_id'],'type'=>3,'status'=>1])->find();
-
+        $list['sell_usdt_price'] = 6.5;
         if($list['zfb_pay']){
             $list['zfb_pay']['gathering_name'] = substr_replace($list['zfb_pay']['gathering_name'],'****',3,4);
         }

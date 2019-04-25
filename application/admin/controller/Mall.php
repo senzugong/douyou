@@ -27,6 +27,7 @@ class Mall extends BasicAdmin
         // 实例Query对象
         $db = UsdtMall::alias('a')
             ->join('dw_users b', 'b.user_id=a.user_id')
+            ->where(['type'=>1])
             ->field('a.*,b.user_name,b.true_name')
             ->order('mall_id desc');
         // 应用搜索条件
