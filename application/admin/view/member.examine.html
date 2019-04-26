@@ -61,6 +61,12 @@
                             <input type="radio" name="status" required value="2" jq-verify="required" jq-error="请选择审核结果" title="不通过" {if $vo.status==2} checked {/if}>
                         </div>
                     </div>
+                    <div class="layui-form-item ">
+                        <label class="layui-form-label">审核理由</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="examine_msg" value="{$vo.examine_msg|default=''}" autocomplete="off" class="layui-input ">
+                        </div>
+                    </div>
                     <div class="layui-form-item">
                         <div class="layui-input-block">
                             {if isset($vo['user_id'])}<input type='hidden' value='{$vo.user_id}' name='user_id'/>{/if}

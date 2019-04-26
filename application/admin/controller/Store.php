@@ -58,6 +58,36 @@ class Store extends BasicAdmin
         }
     }
 
+    /**编辑
+     * @return array|string
+     */
+    public function edit(Request $request) {
+        if ($this->request->isGet()) {
+            return $this->success('成功');
+        }
+        if ($request->isPost()) {
+            $business_msg = $request->post('business_msg', '');
+            $user_id = $request->post('id');
+            $result1 = Db::table('dw_users')->where(['user_id'=>$user_id])->find();
+            Db::table('dw_user_examine')->where(['user_id'=>$user_id])->update(['status'=>2]);
+            $result = Db::table('dw_users')->where(['user_id'=>$user_id])->update(['business_msg'=>$business_msg,'is_business'=>3,'business_usdt'=>0,'is_examine'=>3,'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4)]);
+            // 添加日志
+            UsdtLog::create([
+                'user_id'=>$user_id,
+                'log_content'=> '商家认证失败返回USDT',
+                'type'=> 2,
+                'log_status'=>10,
+                'chance_usdt'=>$result1['business_usdt'],
+                'dw_usdt'=>bcadd($result1['dw_usdt'],$result1['business_usdt'],4),
+                'add_time'=> time(),
+            ]);
+            if($result){
+                $this->success('成功');
+            }else{
+                $this->error('失败');
+            }
+    }
+    }
     /**
      * 设置审核状态
      */

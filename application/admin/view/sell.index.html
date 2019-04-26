@@ -1,0 +1,94 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form" data-params='{"dataName":"article","action":"list"}' action="" method="get">
+                    <div class="layui-form">
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="user_id" placeholder="用户id">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="user_phone" placeholder="用户手机号">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <select name="status">
+                                    <option value="">请选择</option>
+                                    <option value="0">未成交</option>
+                                    <option value="1">已部分成交</option>
+                                    <option value="2">已全部成交</option>
+                                    <option value="3">取消</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"article","key":"mall_id"}'>
+                        <thead>
+                        <tr>
+                            <th width="70" class="txt-center"><span class="order" data-params='{"field":"mall_id","sort":"asc"}'> 发布单ID</span></th>
+                            <th>用户昵称</th>
+                            <th>用户真实名字</th>
+                            <th>发布USDT数量</th>
+                            <th>完成USDI数量</th>
+                            <th>USDT价格</th>
+                            <th>最少交易额</th>
+                            <th>最大交易额</th>
+                            <th>发布时间</th>
+                            <th>状态</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","pageid":"#page","dataName":"article","key":"mall_id"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td class="txt-center">{{ item.mall_id}}</td>
+        <td>{{ item.user_name}}</td>
+        <td>{{ item.true_name}}</td>
+        <td>{{ item.usdt_num}}</td>
+        <td>{{ item.over_usdt}}</td>
+        <td>{{ item.usdt_price}}</td>
+        <td>{{ item.mix_rmb}}</td>
+        <td>{{ item.max_rmb}}</td>
+        <td>{{ item.add_time }}</td>
+        <td>
+            {{# if (item.status == 0) { }}
+            未成交
+            {{# }else if (item.status == 1) { }}
+            已部分成交
+            {{# }else if (item.status == 2) { }}
+            已全部成交
+            {{# }else if (item.status == 3) { }}
+            已取消
+            {{# } }}
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+</script>

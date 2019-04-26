@@ -68,7 +68,23 @@
         </div>
     </div>
 </div>
-
+<div class="add-subcat">
+    <form id="form1" class="layui-form" data-params='{"dataName":"member","key":"user_id","bind":true,"pid":"pid"}'  method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">审核理由</label>
+            <div class="layui-input-block">
+                <!--<input type="text" name="business_msg" value="{$vo.examine_msg|default=''}" autocomplete="off" class="layui-input " style="width:600px">-->
+                <input type="text" name="business_msg" required jq-verify="required" jq-error="请输入理由" placeholder="请输入理由" autocomplete="off" class="layui-input ">
+            </div>
+        </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" jq-submit jq-filter="submit">不通过</button>
+            </div>
+        </div>
+    </form>
+</div>
 <script id="list-tpl" type="text/html" data-params='{"url":"","dataName":"member","pageid":"#page"}'>
     {{# layui.each(d.list, function(index, item){ }}
     <tr>
@@ -124,8 +140,8 @@
                 <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=1","method":"post","confirm":"true"}'>
                     <i class="layui-icon">&#x1005;</i>通过
                 </button>
-                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/setstatus")}","action":"setstatus","data":"id={{ item.user_id }}&status=3","method":"post","confirm":"true"}'>
-                    <i class="iconfont">&#xe626;</i>不通过
+                <button class="layui-btn layui-btn-mini modal" data-params='{"content": ".add-subcat","area":"800px,400px","title":"编辑","data":"id={{ item.user_id }}","bind":"true","type":"1","action":"edit","url":"{:url("$classuri/edit")}"}'>
+                    <i class="iconfont">&#xe653;</i>不通过
                 </button>
                 {{# } }}
             </div>

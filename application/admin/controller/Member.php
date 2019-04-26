@@ -39,9 +39,10 @@ class Member extends BasicAdmin
             ->field('a.*, b.true_name as invite_name')
             ->order("a.is_examine % 3 desc,a.user_id desc");
         // 应用搜索条件
-        foreach (['true_name', 'user_phone', 'role_id'] as $key) {
+        foreach (['true_name', 'user_phone', 'role_id','is_examine'] as $key) {
             if (isset($get[$key]) && $get[$key] !== '') {
                 $key == 'role_id' ? $db->where('a.'.$key, $get[$key]) :$db->where('a.'.$key, 'like', "%{$get[$key]}%");
+                $key == 'is_examine' ? $db->where('a.'.$key, $get[$key]) :$db->where('a.'.$key, 'like', "%{$get[$key]}%");
             }
         }
         // 实例化并显示
@@ -81,6 +82,7 @@ class Member extends BasicAdmin
                 Db::table('dw_users')
                     ->where(['user_id'=> $this->request->post('user_id')])
                     ->update([
+                        'examine_msg'=> $this->request->post('examine_msg',''),
                         'is_examine'=> $this->request->post('status') == 1 ? 1 : 3,
                     ]);
                 Db::table('dw_users')

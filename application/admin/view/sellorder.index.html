@@ -1,0 +1,126 @@
+{include file="public/header"}
+<link rel="stylesheet" type="text/css" href="__CSS__/main.css?v1.4.0" media="all">
+<div class="container-fluid larry-wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!--头部搜索-->
+            <section class="panel panel-padding">
+                <form class="layui-form" data-params='{"dataName":"article","action":"list"}' action="" method="get">
+                    <div class="layui-form">
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="user_id" placeholder="用户id">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="user_phone" placeholder="用户手机号">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <select name="status">
+                                    <option value="">请选择</option>
+                                    <option value="0">代付款</option>
+                                    <option value="1">待放币</option>
+                                    <option value="2">成功</option>
+                                    <option value="3">申述中</option>
+                                    <option value="4">取消</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button lay-submit class="layui-btn" lay-filter="search">查找</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!--列表-->
+            <section class="panel panel-padding">
+                <div class="layui-form">
+                    <table id="example" class="layui-table jq-even" data-params='{"dataName":"article","key":"changelog_id"}'>
+                        <thead>
+                        <tr>
+                            <th width="70" class="txt-center"><span class="order" data-params='{"field":"id","sort":"asc"}'> 序号</span></th>
+                            <th>发布单ID</th>
+                            <th>用户昵称</th>
+                            <th>用户真实名字</th>
+                            <th>发布者昵称</th>
+                            <th>发布者真实名字</th>
+                            <th>邀请人</th>
+                            <th>订单金额</th>
+                            <th>订单USDT数量</th>
+                            <th>收款账户</th>
+                            <th>收款二维码</th>
+                            <th>申述理由</th>
+                            <th>添加时间</th>
+                            <th>状态</th>
+                            <th width="200">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right" id="page"></div>
+            </section>
+        </div>
+    </div>
+</div>
+<script id="list-tpl" type="text/html" data-params='{"url":"","pageid":"#page","dataName":"article","key":"changelog_id"}'>
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td class="txt-center">{{ item.order_id}}</td>
+        <td>{{ item.mall_id}}</td>
+        <td>{{ item.user_name}}</td>
+        <td>{{ item.true_name}}</td>
+        <td>{{ item.mall_user}}</td>
+        <td>{{ item.mall_true_user}}</td>
+        <td>{{ item.invite_name}}</td>
+        <td>{{ item.order_money}}</td>
+        <td>{{ item.order_usdt_num}}</td>
+        <td>{{ item.gathering_name}}</td>
+        <td>
+            {{# if (item.gathering_img) { }}
+            <div style="display: inline-block;"><img src="{{ item.gathering_img}}" onclick="openImage('{{ item.gathering_img}}')" style="cursor: pointer;max-width: 50px;max-height: 50px;" alt=""></div>
+            {{# } }}
+        </td>
+        <td><div style="max-width:160px;word-wrap:break-word">{{ item.status_msg}}</div></td>
+        <td>{{ item.add_time }}<td>
+        {{# if (item.status == 0) { }}
+        代付款
+        {{# }else if (item.status == 1) { }}
+        待放币
+        {{# }else if (item.status == 2) { }}
+        交易完成
+        {{# }else if (item.status == 3) { }}
+        申述中
+        {{# }else if (item.status == 4) { }}
+        取消
+        {{# } }}
+    </td>
+        <td>
+            {{# if (item.status == 3) { }}
+            <button class="layui-btn layui-btn-mini layui-btn-normal ajax" data-params='{"url": "{:url("$classuri/edit")}","action":"setstatus","data":"order_id={{ item.order_id }}&status=2&field=status","method":"post","confirm":"true"}'>
+                <i class="layui-icon">&#x1005;</i>完成订单
+            </button>
+            <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/edit")}","action":"setstatus","data":"order_id={{ item.order_id }}&status=4&field=status","method":"post","confirm":"true"}'>
+                <i class="iconfont">&#xe626;</i>取消订单
+            </button>
+            {{# } }}
+        </td>
+    </tr>
+    {{# }); }}
+</script>
+{include file="public/bottom"}
+<script>
+    layui.use('list');
+    // 放大显示图片
+    function openImage(url) {
+        layer.open({
+            title: '收款码'
+            ,content: '<img src='+url+'>'
+        });
+    }
+</script>
