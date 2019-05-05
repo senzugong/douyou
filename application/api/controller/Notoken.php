@@ -59,7 +59,11 @@ class Notoken extends BasicApi
         $price_now1 = json_decode($data,true);//当前的btc价格（出售）
         $price_now = $price_now1['ticker']['sell'];
         $btc_price = Db::table('dw_btc')->order('btc_id desc')->value('btc_price');//数据库中的btc价格
-        $list['recharge'] =  bcmul(bcdiv(bcsub($price_now,$btc_price,4),$price_now,4),100,2);
+        if($price_now > 0 && $btc_price >0){
+            $list['recharge'] =  bcmul(bcdiv(bcsub($price_now,$btc_price,4),$price_now,4),100,2);
+        }else{
+            $list['recharge']  = 0;
+        }
         if(!$list['recharge'] || !$price_now){
             $list['recharge'] = 0;
         }

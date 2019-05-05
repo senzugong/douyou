@@ -274,7 +274,7 @@ class Wave extends BasicApi
         $userInfo = $request->userInfo;
         $type = $request->post('type',1);
         $page = $request->post('page',1);
-        $list = Db::table('dw_btc_order')->where("user_id={$userInfo['user_id']} and type=$type and is_win !=0")->order('order_id desc')->cache(60)->page($page)->select();
+        $list = Db::table('dw_btc_order')->where("user_id={$userInfo['user_id']} and type=$type and is_win !=0")->order('order_id desc')->page($page)->select();
         foreach($list as &$v){
             if($v['is_win'] ==1){
                 $v['result_price'] = $v['rise_price'];

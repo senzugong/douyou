@@ -214,10 +214,10 @@ class User extends BasicApi
             return  $this->response( $examine);
         }
         // 审核状态
-        $examineStatus = $userInfo->userExamine()->where(['status'=> 0])->find();
-        if ($examineStatus) {
-            return  $this->response('请等待管理员审核' , 308);
-        }
+//        $examineStatus = $userInfo->userExamine()->where(['status'=> 0])->find();
+//        if ($examineStatus) {
+//            return  $this->response('请等待管理员审核' , 308);
+//        }
         // array_merge只能合并数组，其他报错
         $requestFile = $request->file() ?: [];
         // 验证

@@ -97,9 +97,9 @@
         <td>{{ item.dw_usdt }}</td>
         <td>{{ item.business_usdt }}</td>
 
-        <td> <img src="{{ item.img1 }}" style="width:40px;height:40px;" onclick="openImage('{{ item.img1 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
-        <td> <img src="{{ item.img2 }}" style="width:40px;height:40px;"onclick="openImage('{{ item.img2 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
-        <td> <img src="{{ item.img3 }}" style="width:40px;height:40px;"onclick="openImage('{{ item.img3 }}')" alt="..." class="img-thumbnail" style="cursor: pointer;max-height: 100%"></td>
+        <td> <img src="{{ item.img1 }}" style="width:40px;height:40px;cursor: pointer;" onclick="openImage('{{ item.img1 }}')" alt="..." class="img-thumbnail"></td>
+        <td> <img src="{{ item.img2 }}" style="width:40px;height:40px;cursor: pointer;"onclick="openImage('{{ item.img2 }}')" alt="..." class="img-thumbnail"></td>
+        <td> <img src="{{ item.img3 }}" style="width:40px;height:40px;cursor: pointer;"onclick="openImage('{{ item.img3 }}')" alt="..." class="img-thumbnail"></td>
         <td>
             {{#if (item.is_attestation == 0){ }}
             未上传认证
@@ -167,19 +167,49 @@
     .custom-pop-master{
         z-index: 6000;
         position: fixed;
-        top: 80px;
+        top: 50px;
         left: 50%;
         transform: translateX(-50%);;
         max-width: 100%;
         background: #fff;
-        max-height: calc(100% - 90px);
-        display: flex;
-        flex-direction:column;
+        /*width: 800px;*/
+        /*display: flex;*/
+        /*flex-direction:column;*/
     }
     .custom-pop-content{
         padding: 20px;
-        max-height: calc(100% - 90px);
         overflow: auto;
+        min-width: 200px;
+        max-width: 100%;
+        min-height: 50px;
+    }
+    .custom-pop-transform{
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(200,200,200,0.3);
+        border-radius: 4px;
+    }
+    .transform-left{
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: url('/static/images/left.png') no-repeat;
+        background-size: 100% 100%;
+        cursor: pointer;
+    }
+    .transform-right{
+        margin-left: 20px;
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: url('/static/images/right.png') no-repeat;
+        background-size: 100% 100%;
+        cursor: pointer;
+    }
+    .custom-image{
+        text-align: center;
     }
 </style>
 <script src="/static/js/jquery-1.9.0.js"></script>
@@ -190,12 +220,36 @@
         var pop = $('<div class="custom-pop-master">' +
             '<div class="layui-layer-title" style="flex-shrink: 0">身份认证' +
             '<span class="layui-layer-setwin"><a class="layui-layer-ico layui-layer-close layui-layer-close1" href="javascript:;"></a></span></div>' +
-            '<div class="custom-pop-content"><img src='+url+'></div>' +
+            '<div class="custom-pop-content"><div class="custom-image"><img src='+url+'></div></div>' +
+            '<div class="custom-pop-transform"><span class="transform-left"></span><span class="transform-right"></span></div>' +
             '</div>');
         $(document.body).append(shade).append(pop);
-        $(pop.find('.layui-layer-close')[0]).on('click',function () {
+        pop.find('.layui-layer-close').click(function () {
             shade.remove()
             pop.remove()
         })
+        pop.find('.custom-pop-content img').load(function () {
+            pop.find('.custom-pop-content').css('max-height',document.documentElement.clientHeight - 110 + 'px');
+            var elm = pop.find('.custom-image')[0], rect = elm.getBoundingClientRect();
+            if (rect.height < rect.width) {
+                elm.style.height = rect.width + 'px';
+                elm.style.lineHeight = rect.width + 'px';
+            }
+            if (rect.height > rect.width) {
+                elm.style.width = rect.height + 'px';
+            }
+        })
+        // 左
+        var rotate = 0;
+        pop.find('.transform-left').click(function () {
+            rotate -= 90;
+            pop.find('.custom-pop-content img').css('transform','rotate('+rotate+'deg)');
+        })
+        // 右
+        pop.find('.transform-right').click(function () {
+            rotate += 90;
+            pop.find('.custom-pop-content img').css('transform','rotate('+rotate+'deg)');
+        })
+
     }
 </script>

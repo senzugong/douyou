@@ -135,16 +135,18 @@ class Worker
     public function getresult()
     {
         // url地址
-        $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+//        $url = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+        $url = 'http://api.bitkk.com/data/v1/ticker?market=btc_usdt';
         // 获取数据
         $data = Curl::get($url);
-        if(!is_array($data['ticker'])){
-            $url1 = 'http://api.bitkk.com/data/v1/ticker?market=btc_usdt';
+        if(!is_array($data['ticker']) || !isset($data['ticker']) || count($data['ticker']) <= 3 ||  $data['ticker'] === 'false' ){
+            $url1 = 'http://api.zb.cn/data/v1/ticker?market=btc_usdt';
+//            $url1 = 'http://api.bitkk.com/data/v1/ticker?market=btc_usdt';
             // 获取数据
             $data1 = Curl::get($url1);
             $btc_price = $data1['ticker']['sell'];//当前btc价格
         }else{
-            $btc_price = $data['ticker']['sell'];//当前btc价格
+            $btc_price = $data['ticker']['buy'];//当前btc价格
         }
 //        if(!$btc_price){
 //                $btc_now = Db::table('dw_btc_now')->value('btc_now');
@@ -157,7 +159,6 @@ class Worker
 //                    $btc_price = bcadd($data['ticker']['sell'],bcdiv($num,100,4),4);
 //                }
 //        }else{
-
             $result = $this->is_controller($btc_price);
             if($result){
                 $data['ticker']['sell'] = $result;
@@ -314,7 +315,7 @@ class Worker
      */
     public function getLottery() {
         // url地址
-        $url = 'http://api3.apicp.cn/api?token=1f930c2e53b82998&code=cqssc&rows=1&format=json';
+        $url = 'http://api3.apicp.cn/api?token=3b3e66a8cccc70d5&code=cqssc&rows=1&format=json';
         $name = '重庆时时彩';
         // 获取数据
         $data = Curl::get($url);
@@ -323,12 +324,11 @@ class Worker
             // 获取数据
             $data = Curl::get($url);
         }
-
         // 将数据放入数据库
         if (is_array($data) && isset($data['data'])) {
             // 彩票开奖信息
             $list = $data['data'];
-            foreach ($list as $value) {
+            foreach ($list as &$value) {
                 $game = GameResult::where(['periods'=> $value['expect']])->find();
                 if (!$game) {
                     GameResult::create([
@@ -341,18 +341,18 @@ class Worker
                     $openCode = explode(',', $value['opencode']);
                     $end = $openCode[4] % 2;
                     switch ($end) {
-                        case 0:
-                            // 中奖处理
-                            GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 2])->update(['status'=>2]);
-                            // 未中奖
-                            GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 1])->update(['status'=>1]);
-                            $gamePostdata = GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 2])->select();
-                            foreach ($gamePostdata as $value) {
+                        case 0://双
+                            // 未中奖处理
+                            GamePostdata::where(['status'=>0, 'type_id'=> 1])->update(['status'=>1]);
+                            $gamePostdata = GamePostdata::where(['status'=>0, 'type_id'=> 2])->select();
+                            foreach ($gamePostdata as &$v) {
                                 Db::startTrans();
                                 try {
+                                    // 中奖
+                                    GamePostdata::where(['id'=>$v['id']])->update(['status'=>2]);
                                     // 修改用户账户
-                                    $user = User::get($value->user_id);
-                                    $user->dw_usdt = bcadd($user->dw_usdt, $value->win_money, 4);
+                                    $user = User::get($v->user_id);
+                                    $user->dw_usdt = bcadd($user->dw_usdt, $v->win_money, 4);
                                     $user->save();
                                     // 添加日志
                                     UsdtLog::create([
@@ -360,7 +360,7 @@ class Worker
                                         'log_content' => '号码竞猜',
                                         'type' => 2,
                                         'log_status' => 4,
-                                        'chance_usdt' => $value->win_money,
+                                        'chance_usdt' => $v->win_money,
                                         'dw_usdt' => $user->dw_usdt,
                                         'add_time' => time(),
                                     ]);
@@ -372,18 +372,18 @@ class Worker
                                 }
                             }
                             break;
-                        case 1:
-                            // 中奖处理
-                            GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 1])->update(['status'=>2]);
+                        case 1: //单
                             // 未中奖
-                            GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 2])->update(['status'=>1]);
-                            $gamePostdata = GamePostdata::where(['period_id'=> $value['expect'], 'type_id'=> 1])->select();
-                            foreach ($gamePostdata as $value) {
+                            GamePostdata::where(['status'=>0, 'type_id'=> 2])->update(['status'=>1]);
+                            $gamePostdata = GamePostdata::where(['status'=>0, 'type_id'=> 1])->select();
+                            foreach ($gamePostdata as $v) {
                                 Db::startTrans();
                                 try {
+                                    // 中奖处理
+                                    GamePostdata::where(['id'=>$v['id']])->update(['status'=>2]);
                                     // 修改用户账户
-                                    $user = User::get($value->user_id);
-                                    $user->dw_usdt = bcadd($user->dw_usdt, $value->win_money, 4);
+                                    $user = User::get($v->user_id);
+                                    $user->dw_usdt = bcadd($user->dw_usdt, $v->win_money, 4);
                                     $user->save();
                                     // 添加日志
                                     UsdtLog::create([
@@ -391,7 +391,7 @@ class Worker
                                         'log_content' => '号码竞猜',
                                         'type' => 2,
                                         'log_status' => 4,
-                                        'chance_usdt' => $value->win_money,
+                                        'chance_usdt' => $v->win_money,
                                         'dw_usdt' => $user->dw_usdt,
                                         'add_time' => time(),
                                     ]);
@@ -436,6 +436,12 @@ class Worker
                     'over_usdt'=> $over_usdt,
                     'status'=> $mallStatus,
                 ]);
+                // 发布收购
+                if ($usdtMall['type'] == 2) {
+                    // 下单用户
+                    $orderUser = $item->orderUser;
+                    $orderUser->save(['dw_usdt'=> bcadd($orderUser['dw_usdt'], $item['order_usdt_num'], 4)]);
+                }
                 // 提交
                 Db::commit();
             } catch (\Exception $exception) {

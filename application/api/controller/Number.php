@@ -36,7 +36,6 @@ class Number extends BasicApi
         $userInfo = $request->userInfo;
         // 当天购买数
         $total = $userInfo->userGameByHistory()
-            ->whereTime('add_time', 'today')
             ->count();
         // 当天中奖次数
         $win = $userInfo->userGameByHistory()
@@ -45,9 +44,14 @@ class Number extends BasicApi
             ->count();
         // 历史战绩
         $historyList = $userInfo->userGameByHistory()
+            ->limit(5)
             ->page($page)
+            ->order('id desc')
             ->select();
-
+        foreach($historyList as &$v){
+            $v['add_time'] = $this->getTime($v['add_time']);
+//            $v['periods'] = $v['result_id'];
+        }
         return $this->response(['total'=> $total,'win'=> $win,'list'=> $historyList]);
     }
 
@@ -58,10 +62,17 @@ class Number extends BasicApi
      * @return \think\Response
      */
     public function buy(Request $request, NumberBuy $numberBuy) {
+
         // 获取开奖信息
         $info = $this->getOpenInfo();
+        $userInfo = $request->userInfo;
+        $result = Db::table('dw_game_postdata')->where(['user_id'=>$userInfo['user_id'],'period_id'=>$info['period_id']])->find();
+        if($result){
+            return $this->response('该期数您已购买!', 304);
+        }
         // 购入封盘时间
         $request->post(['halt_time'=> $info['halt_time']]);
+        // 验证
         // 验证
         if (!$numberBuy->check($request->post())) {
             return $this->response($numberBuy->getError(), 304);
@@ -69,7 +80,6 @@ class Number extends BasicApi
         // 开启事务
         Db::startTrans();
         try {
-            $userInfo = $request->userInfo;
             // 扣除USDT
             $userInfo->dw_usdt = bcsub($userInfo->dw_usdt, $request->post('money'), 4);
             $userInfo->save();
@@ -89,6 +99,7 @@ class Number extends BasicApi
                 'user_id'=> $userInfo->user_id,
                 'log_content'=> '号码竞猜',
                 'type'=> 1,
+                'log_status'=>4,
                 'chance_usdt'=> $request->post('money'),
                 'dw_usdt'=> $userInfo->dw_usdt,
                 'add_time'=> time(),
@@ -133,10 +144,47 @@ class Number extends BasicApi
         $list = GameResult::page($page)
             ->order('periods desc')
             ->select();
-
+        foreach ($list as &$v){
+            $v['add_time'] = $this->getTime($v['add_time']);
+            $v['periods'] = $v['result_id'];
+        }
         return $this->response($list);
     }
 
+    /**
+     * @param Request $request
+     * @return \think\Response
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function get_result(Request $request){
+        $period_id = $request->param('period_id');
+        $userInfo = $request->userInfo;
+        if(!$period_id){
+            return $this->response('参数不全!', 304);
+        }
+        $result = Db::table('dw_game_postdata')->where(['user_id'=>$userInfo['user_id'],'period_id'=>$period_id])->field('id,user_id,period_id,type_id,win_money,status')->find();
+        if($result['status'] == 2){
+            $data = [
+                'type_id'=>$result['type_id'],
+                'win_money'=>$result['win_money'],
+                'period_id'=>$result['period_id'],
+            ];
+            return $this->response($data);
+        }elseif($result['status'] == 1){
+            $data = [
+                'type_id'=>$result['type_id'],
+                'win_money'=>0,
+                'period_id'=>$result['period_id'],
+            ];
+            return $this->response($data);
+        }elseif($result['status'] == 0){
+            return $this->response('该期还未开奖',304);
+        }else{
+            return $this->response('你未购买该期',304);
+        }
+    }
     /**
      * 获取最新的开奖结果
      * @return \think\Response
@@ -144,16 +192,43 @@ class Number extends BasicApi
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function newest() {
+    public function newest(Request $request) {
         // 最新开奖结果
         $newest = GameResult::order('periods desc')
             ->find();
+        $newest['periods'] = $newest['result_id'];
         $info = $this->getOpenInfo();
+        $userInfo = $request->userInfo;
+        $result = Db::table('dw_game_postdata')->where(['user_id'=>$userInfo['user_id'],'period_id'=>$info['period_id']])->find();
+        if($result){
+            $is_partake = 1;
+        }else{
+            $is_partake = 0;
+        }
+        $count = Db::table('dw_game_postdata')->where(['status'=> 0])->count();
+        $rise_count = Db::table('dw_game_postdata')->where(['type_id'=>1,'status'=> 0])->count();
+        $fill_count = Db::table('dw_game_postdata')->where(['type_id'=>2,'status'=> 0])->count();
+        if($rise_count > 0 && $fill_count >0){
+            $rise = bcdiv($rise_count,$count,2)*100;
+            $fill = bcdiv($fill_count,$count,2)*100;
+        }elseif($rise_count > 0 && $fill_count ==0){
+            $rise = 100;
+            $fill = 0;
+        }elseif($rise_count == 0 && $fill_count >0){
+            $rise = 0;
+            $fill = 100;
+        }else{
+            $rise = 50;
+            $fill = 50;
+        }
         $data = [
             'result'=> $newest,
             'periods'=> $info['period_id'], // 期数
             'open_time'=> $info['open_time'], // 开奖时间
-            'halt_time'=> $info['halt_time'], // 截止时间
+            'halt_time'=> $this->getTime($info['halt_time']), // 截止时间
+            'single'=>$rise,
+            'two'=>$fill,
+            'is_partake'=>$is_partake
         ];
 
         return $this->response($data);
@@ -164,44 +239,45 @@ class Number extends BasicApi
      * @return array
      */
     protected function getOpenInfo() {
-        // 开奖时间
-        $idleTime = date('His');
-        if ($idleTime > '073030' || $idleTime <= '031030') {
-            // 开奖时间确定
-            $time = substr($idleTime, -4);
-            $openTime = 0;
-            $periodNum = 0;
-            if ($time > 1030 && $time <= 3030) {
-                $openTime = strtotime(date('Y-m-d H:30:30'));
-                $periodNum = 1;
-            } elseif ($time > 3030 && $time <= 5030) {
-                $openTime = strtotime(date('Y-m-d H:50:30'));
-                $periodNum = 2;
-            } elseif ($time > 5030 || $time <= 1030) {
-                // 00:10:30不开奖
-                if (substr($idleTime, 0, 2) === '00') {
-                    $openTime = strtotime(date('Y-m-d H:30:30'));
-                    $periodNum = 1;
-                } else {
-                    $openTime = $time > 5030 ? strtotime(date('Y-m-d H:10:30', mktime(date('H')+1))) : strtotime(date('Y-m-d H:10:30'));
-                    $periodNum = 0;
-                }
-            }
-            // 当前期数后缀
-            if ($idleTime <= '031030') {
-                $periodStaff = substr($idleTime, 0, 2) * 3 + $periodNum;
-            } else {
-                $periodStaff = (substr($idleTime, 0, 2) - 4) * 3 + $periodNum;
-            }
-            $periodStaff = substr('00'.$periodStaff, -3);
-        } else {
-            $openTime = strtotime(date('Y-m-d 07:30:30'));
-            $periodStaff = '010';
-        }
+//        // 开奖时间
+//        $idleTime = date('His');
+//        if ($idleTime > '073030' || $idleTime <= '031030') {
+//            // 开奖时间确定
+//            $time = substr($idleTime, -4);
+//            $openTime = 0;
+//            $periodNum = 0;
+//            if ($time > 1030 && $time <= 3030) {
+//                $openTime = strtotime(date('Y-m-d H:30:30'));
+//                $periodNum = 1;
+//            } elseif ($time > 3030 && $time <= 5030) {
+//                $openTime = strtotime(date('Y-m-d H:50:30'));
+//                $periodNum = 2;
+//            } elseif ($time > 5030 || $time <= 1030) {
+//                // 00:10:30不开奖
+//                if (substr($idleTime, 0, 2) === '00') {
+//                    $openTime = strtotime(date('Y-m-d H:30:30'));
+//                    $periodNum = 1;
+//                } else {
+//                    $openTime = $time > 5030 ? strtotime(date('Y-m-d H:10:30', mktime(date('H')+1))) : strtotime(date('Y-m-d H:10:30'));
+//                    $periodNum = 0;
+//                }
+//            }
+//            // 当前期数后缀
+//            if ($idleTime <= '031030') {
+//                $periodStaff = substr($idleTime, 0, 2) * 3 + $periodNum;
+//            } else {
+//                $periodStaff = (substr($idleTime, 0, 2) - 4) * 3 + $periodNum;
+//            }
+//            $periodStaff = substr('00'.$periodStaff, -3);
+//        } else {
+//            $openTime = strtotime(date('Y-m-d 07:30:30'));
+//            $periodStaff = '010';
+//        }
         // 当前期数
-        $period = date('Ymd').$periodStaff;
+        $result = Db::table('dw_game_result')->order('result_id desc')->find();
+        $openTime =  $result['add_time'] + 20*60;
         $date = [
-            'period_id'=> $period,
+            'period_id'=> $result['result_id'] + 1,
             'open_time'=> $openTime,
             'halt_time'=> $openTime - 60, // 截止时间
         ];

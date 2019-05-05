@@ -9,7 +9,12 @@
                     <div class="layui-form">
                         <div class="layui-inline">
                             <div class="layui-input-inline">
-                                <input class="layui-input" name="user_name" placeholder="用户名称">
+                                <input class="layui-input" name="true_name" placeholder="用户真实名字">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input class="layui-input" name="user_phone" placeholder="用户手机号码">
                             </div>
                         </div>
                         <div class="layui-inline">
@@ -33,13 +38,14 @@
                         <tr>
                             <th width="30"><input type="checkbox" id="checkall" data-name="log_id" lay-filter="check" lay-skin="primary"></th>
                             <th width="70" class="txt-center"><span class="order" data-params='{"field":"id","sort":"asc"}'> 序号</span></th>
-                            <th>用户名</th>
+                            <th>用户真实名字</th>
+                            <th>用户手机号码</th>
                             <th>类型</th>
                             <th>交易说明</th>
                             <th>交易USDT数量</th>
                             <th>账户余额</th>
                             <th>交易时间</th>
-                            <th width="130">操作</th>
+                            <!--<th width="130">操作</th>-->
                         </tr>
                         </thead>
                         <tbody id="list"></tbody>
@@ -57,7 +63,8 @@
     <tr>
         <td><input type="checkbox" name="log_id" value="{{ item.log_id}}" lay-skin="primary"></td>
         <td class="txt-center">{{ item.log_id}}</td>
-        <td>{{ item.user_name}}</td>
+        <td>{{ item.true_name}}</td>
+        <td>{{ item.user_phone}}</td>
         <td>
             {{#if (item.type == 1){ }}
             支出
@@ -69,13 +76,13 @@
         <td>{{ item.chance_usdt}}</td>
         <td>{{ item.dw_usdt}}</td>
         <td>{{ item.add_time }}</td>
-        <td>
-            <div class="layui-btn-group">
-                <button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"log_id={{ item.log_id }}&field=delete","method":"post","confirm":"true"}'>
-                    <i class="iconfont">&#xe626;</i>删除
-                </button>
-            </div>
-        </td>
+        <!--<td>-->
+            <!--<div class="layui-btn-group">-->
+                <!--<button class="layui-btn layui-btn-mini layui-btn-danger ajax" data-params='{"url": "{:url("$classuri/del")}","action":"del","data":"log_id={{ item.log_id }}&field=delete","method":"post","confirm":"true"}'>-->
+                    <!--<i class="iconfont">&#xe626;</i>删除-->
+                <!--</button>-->
+            <!--</div>-->
+        <!--</td>-->
     </tr>
     {{# }); }}
 </script>

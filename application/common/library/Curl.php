@@ -18,7 +18,7 @@ class Curl
     /**
      * @var int 请求超时时间
      */
-    protected $timeout = 5000;
+    protected $timeout = 5;
     /**
      * @var string 请求地址
      */

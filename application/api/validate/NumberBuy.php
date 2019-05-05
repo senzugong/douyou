@@ -38,7 +38,7 @@ class NumberBuy extends Validate
      * @return bool|string
      */
     protected function checkPassword($value) {
-        return CommonValidate::validate('payPassword', $value);
+        return CommonValidate::validate('payPassword',$value);
     }
 
     /**
@@ -49,8 +49,8 @@ class NumberBuy extends Validate
     protected function checkMoney($value) {
         // 用户信息
         $userInfo = request()->userInfo;
-        if ($value > $userInfo->dw_money) {
-            return '抖金不足';
+        if ($value > $userInfo->dw_usdt) {
+            return 'USDT余额不足';
         } else {
             return true;
         }
@@ -62,11 +62,11 @@ class NumberBuy extends Validate
      * @return bool|string
      */
     protected function checkTime($value) {
-        // 开奖前不能继续投注
-        if ($value > time()) {
-            return '已停止投注';
-        } else {
+//        // 开奖前不能继续投注
+//        if ($value > time()) {
+//            return '已停止投注';
+//        } else {
             return true;
-        }
+//        }
     }
 }

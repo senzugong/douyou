@@ -971,6 +971,21 @@ class Mall extends BasicApi
             return 0;
         }
     }
+
+    /**
+     * 开休市时间
+     * @param Request $request
+     */
+    public function open_time(Request $request){
+        $result['is_open'] = $this->get_open();
+        $week = date("w");//今天周几
+        if($week == 0){
+            $result['week'] = Db::table('dw_basic_opentime')->where(['id'=>7])->find();
+        }else{
+            $result['week'] = Db::table('dw_basic_opentime')->where(['id'=>$week])->find();
+        }
+        return $this->response($result);
+    }
     /**
      * 获取付款信息
      * @param Request $request
