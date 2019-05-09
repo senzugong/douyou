@@ -119,7 +119,12 @@ class Turntable extends BasicApi
             ->order('sort_order asc')
             ->select();
         foreach($drawList as &$v){
-            $v['prize_img'] =$v['prize_img'] ? Config::get('image_url').$v['prize_img'] : '';
+            if($v['id'] == 6){
+                $v['prize_img'] =Config::get('image_url'). 'public/upload/image/gift/9.png';
+            }else{
+                $v['prize_img'] =$v['prize_img'] ? Config::get('image_url').$v['prize_img'] : '';
+            }
+
         }
         // 当月奖品中奖情况
         $drawWin = TurntableLog::where(['status'=> 1])
@@ -389,15 +394,5 @@ class Turntable extends BasicApi
         TurntableLog::where(['win_id'=>$win_id])->update(['type'=>1]);
         return $this->response();
 
-    }
-    /**
-     * 返回转盘规则
-     * @return \think\Response
-     */
-    public function rule() {
-        $result = <<<EOF
-<div class="rule-box"><div class="rule-tile padding-bottom-20"><span>参与资格</span></div><div class="rule-text padding-bottom-23">活动仅限蚪游账户用户参加。</div><div class="rule-tile padding-bottom-20"><span>活动时间</span></div><div class="rule-text padding-bottom-23">2019年3月1日至2019年3月31</div><div class="rule-tile padding-bottom-20"><span>活动规则</span></div><div class="rule-text color-active padding-bottom-5">1. 参与规则：</div><div class="rule-text padding-bottom-30">活动期间，每次消耗20蚪金进行转盘抽奖一次，抽奖几率随机，蚪金不足无法参与抽奖，蚪金使用后无法退还。每日不限抽奖次数。</div><div class="rule-text color-active padding-bottom-5">2. 抽奖方式：</div><div class="rule-text padding-bottom-30">采取转盘抽奖的方式，每次仅可转动一次，指针停留区域变为最终奖项，不能人为干扰转盘运行，否则抽奖结果作废。</div><div class="rule-text color-active padding-bottom-5">3. 奖品发放：</div><div class="rule-text padding-bottom-30">抽到奖品后，可在“我的战绩”处查看并兑换；若抽到蚪金奖励，则可随机获得一定数量的蚪金，系统自动发送到蚪金账户余额中；关于蚪金的变化，可在账单中查看；</div><div class="rule-text color-active padding-bottom-5">4. 特别须知：</div><div class="rule-text padding-bottom-30">请避免违规刷蚪金的行为（包括但不限于虚假交易、恶意拆单、退款），如发现刷蚪金行为，蚪游有权取消活动参与资格及领奖资格</div><div class="rule-text color-active padding-bottom-5">5. 该活动所获得任何奖励均与苹果公司无关，本次活动最终解释权归蚪游所有。</div></div>
-EOF;
-        return $this->response($result);
     }
 }

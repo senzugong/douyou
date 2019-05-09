@@ -224,7 +224,7 @@ class Number extends BasicApi
         $data = [
             'result'=> $newest,
             'periods'=> $info['period_id'], // 期数
-            'open_time'=> $info['open_time'], // 开奖时间
+            'open_time'=>$info['open_time'], // 开奖时间
             'halt_time'=> $this->getTime($info['halt_time']), // 截止时间
             'single'=>$rise,
             'two'=>$fill,
@@ -276,6 +276,9 @@ class Number extends BasicApi
         // 当前期数
         $result = Db::table('dw_game_result')->order('result_id desc')->find();
         $openTime =  $result['add_time'] + 20*60;
+        if($openTime < time()){
+            $openTime = time();
+        }
         $date = [
             'period_id'=> $result['result_id'] + 1,
             'open_time'=> $openTime,

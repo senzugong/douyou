@@ -19,7 +19,7 @@ class Worker
     /**
      * @var int 定时时间
      */
-    protected $timer = 15;
+    protected $timer = 8;
     /**
      * @var int 进程数
      */
